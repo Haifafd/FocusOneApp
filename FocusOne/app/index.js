@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { useState } from "react";
+import { useRouter } from "expo-router";
 import { useTheme } from "../contexts/ThemeContext";
 import Button from "../components/common/button";
 import Input from "../components/common/input";
@@ -8,6 +9,7 @@ import { typography, spacing } from "../constants/typography";
 
 export default function TestScreen() {
   const { theme, activeMode, toggleTheme } = useTheme();
+  const router = useRouter();
   const [text, setText] = useState("");
 
   return (
@@ -16,46 +18,46 @@ export default function TestScreen() {
       contentContainerStyle={styles.container}
     >
       <Text style={[styles.title, { color: theme.text }]}>
-        🎯 FocusOne — اختبار الأساسيات
+        🎯 FocusOne — Test Screen
       </Text>
 
       <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-        الثيم الحالي: {activeMode === "dark" ? "🌙 ليلي" : "☀️ نهاري"}
+        Current theme: {activeMode === "dark" ? "🌙 Dark" : "☀️ Light"}
       </Text>
 
       <Card style={{ marginVertical: spacing.lg }}>
         <Text style={[styles.cardText, { color: theme.text }]}>
-          هذا كرت تجريبي ✨
+          This is a test card ✨
         </Text>
         <Text style={[styles.cardText, { color: theme.textSecondary }]}>
-          يستخدم نفس الثيم النشط
+          Uses the active theme
         </Text>
       </Card>
 
       <Input
-        label="جربي الإدخال"
-        placeholder="اكتبي أي شي..."
+        label="Try the input"
+        placeholder="Type anything..."
         value={text}
         onChangeText={setText}
       />
 
       <Button
-        title="🌓 تبديل الثيم"
+        title="🌓 Toggle Theme"
         onPress={toggleTheme}
         style={{ marginTop: spacing.md }}
       />
 
       <Button
-        title="زر ثانوي"
-        variant="secondary"
-        onPress={() => {}}
+        title="🔐 Go to Login"
+        variant="outline"
+        onPress={() => router.push("/(auth)/login")}
         style={{ marginTop: spacing.sm }}
       />
 
       <Button
-        title="زر بحدود"
+        title="📝 Go to Register"
         variant="outline"
-        onPress={() => {}}
+        onPress={() => router.push("/(auth)/register")}
         style={{ marginTop: spacing.sm }}
       />
     </ScrollView>

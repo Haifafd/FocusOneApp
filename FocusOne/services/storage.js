@@ -1,57 +1,58 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Wrapper بسيط حول AsyncStorage مع معالجة الأخطاء
+// Wrapper around AsyncStorage with error handling
 
 export const storage = {
-  // حفظ بيانات (تلقائياً تتحول لـ JSON)
+  // Save data (auto JSON conversion)
   async set(key, value) {
     try {
       const json = JSON.stringify(value);
       await AsyncStorage.setItem(key, json);
       return true;
     } catch (e) {
-      console.log(`خطأ في حفظ ${key}:`, e);
+      console.log(`Error saving ${key}:`, e);
       return false;
     }
   },
 
-  // قراءة بيانات
+  // Read data
   async get(key) {
     try {
       const json = await AsyncStorage.getItem(key);
       return json ? JSON.parse(json) : null;
     } catch (e) {
-      console.log(`خطأ في قراءة ${key}:`, e);
+      console.log(`Error reading ${key}:`, e);
       return null;
     }
   },
 
-  // حذف بيانات
+  // Remove data
   async remove(key) {
     try {
       await AsyncStorage.removeItem(key);
       return true;
     } catch (e) {
-      console.log(`خطأ في حذف ${key}:`, e);
+      console.log(`Error removing ${key}:`, e);
       return false;
     }
   },
 
-  // مسح كل البيانات (مفيد لزر "Reset Data" في Settings)
+  // Clear all data (useful for "Reset Data" in Settings)
   async clear() {
     try {
       await AsyncStorage.clear();
       return true;
     } catch (e) {
-      console.log("خطأ في مسح البيانات:", e);
+      console.log("Error clearing data:", e);
       return false;
     }
   },
 };
 
-// مفاتيح موحّدة للاستخدام في كل التطبيق
+// Unified storage keys for the entire app
 export const STORAGE_KEYS = {
-  USER: "@focusone:user",
+  USER: "@focusone:user",            // Current logged-in user (session)
+  USERS: "@focusone:users",          // List of all registered accounts
   GOALS: "@focusone:goals",
   TASKS: "@focusone:tasks",
   SESSIONS: "@focusone:sessions",
