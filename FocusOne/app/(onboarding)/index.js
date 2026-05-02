@@ -11,7 +11,7 @@ import {
 import { useRouter } from "expo-router";
 import { useTheme } from "../../contexts/ThemeContext";
 import { storage, STORAGE_KEYS } from "../../services/storage";
-import Button from "../../components/common/button";
+import Button from "../../components/common/Button";
 import {
   WelcomeIllustration,
   OneGoalIllustration,

@@ -12,8 +12,8 @@ import {
 import { useRouter } from "expo-router";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
-import Input from "../../components/common/input";
-import Button from "../../components/common/button";
+import Input from "../../components/common/Input";
+import Button from "../../components/common/Button";
 import { typography, spacing } from "../../constants/typography";
 
 export default function LoginScreen() {
