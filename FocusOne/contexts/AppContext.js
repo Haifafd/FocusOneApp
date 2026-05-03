@@ -1,8 +1,22 @@
+<<<<<<< HEAD
+import React, { createContext, useState } from "react";
+=======
 import React, { createContext, useState } from 'react';
+>>>>>>> 41040d06f3b848fac142751ac6689d9627a1df08
 
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
+<<<<<<< HEAD
+  const [goals, setGoals] = useState([]);
+
+  const addGoal = (goal) => {
+    setGoals((prev) => [...prev, goal]);
+  };
+
+  return (
+    <AppContext.Provider value={{ goals, addGoal }}>
+=======
   // إدارة البيانات (Global State)
   const [goals, setGoals] = useState([
     {
@@ -39,6 +53,7 @@ export const AppProvider = ({ children }) => {
 
   return (
     <AppContext.Provider value={{ goals, setGoals, selectedGoalId, setSelectedGoalId, toggleTask }}>
+>>>>>>> 41040d06f3b848fac142751ac6689d9627a1df08
       {children}
     </AppContext.Provider>
   );
