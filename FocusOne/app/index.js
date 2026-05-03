@@ -17,6 +17,7 @@ export default function Index() {
         Test menu
       </Text>
 
+      {/* زر فتح الـ Onboarding */}
       <Pressable
         style={[styles.button, { backgroundColor: theme.primary }]}
         onPress={() => router.push("/(onboarding)")}
@@ -24,6 +25,7 @@ export default function Index() {
         <Text style={styles.buttonText}>🎨 Open Onboarding</Text>
       </Pressable>
 
+      {/* زر فتح تسجيل الدخول */}
       <Pressable
         style={[styles.button, { backgroundColor: theme.primary }]}
         onPress={() => router.push("/(auth)/login")}
@@ -31,8 +33,48 @@ export default function Index() {
         <Text style={styles.buttonText}>🔐 Open Login</Text>
       </Pressable>
 
+      {/* 🔥 زر فتح شاشة الفوكس */}
       <Pressable
-        style={[styles.button, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 }]}
+        style={[styles.button, { backgroundColor: theme.primary }]}
+        onPress={() => router.push("/foucss")}
+      >
+        <Text style={styles.buttonText}>🔥 Open Focus Screen</Text>
+      </Pressable>
+
+      {/* 🟢 زر فتح شاشة Session Complete */}
+      <Pressable
+        style={[styles.button, { backgroundColor: theme.primary }]}
+        onPress={() => router.push("/SessionComplete")}
+      >
+        <Text style={styles.buttonText}>✅ Open Session Complete</Text>
+      </Pressable>
+
+      {/* 🏠 زر فتح شاشة Home */}
+      <Pressable
+        style={[styles.button, { backgroundColor: theme.primary }]}
+        onPress={() => router.push("/HomeScreen")}
+      >
+        <Text style={styles.buttonText}>🏠 Open Home Screen</Text>
+      </Pressable>
+
+      {/* ⚙️ زر فتح شاشة Settings */}
+      <Pressable
+        style={[styles.button, { backgroundColor: theme.primary }]}
+        onPress={() => router.push("/Settings")}
+      >
+        <Text style={styles.buttonText}>⚙️ Open Settings</Text>
+      </Pressable>
+
+      {/* زر تغيير الثيم */}
+      <Pressable
+        style={[
+          styles.button,
+          {
+            backgroundColor: theme.surface,
+            borderColor: theme.border,
+            borderWidth: 1,
+          },
+        ]}
         onPress={toggleTheme}
       >
         <Text style={[styles.buttonText, { color: theme.text }]}>
