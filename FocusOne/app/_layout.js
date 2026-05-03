@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ThemeProvider, useTheme } from "../contexts/ThemeContext";
 import { AuthProvider } from "../contexts/AuthContext";
+import { AppProvider } from "../contexts/AppContext"; // ← أضفناه هنا
 
 function RootLayoutNav() {
   const { theme, activeMode } = useTheme();
@@ -28,7 +29,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <RootLayoutNav />
+        <AppProvider>   {/* ← هنا أهم خطوة */}
+          <RootLayoutNav />
+        </AppProvider>
       </AuthProvider>
     </ThemeProvider>
   );

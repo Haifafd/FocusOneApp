@@ -57,6 +57,14 @@ export default function Index() {
         <Text style={styles.buttonText}>🏠 Open Home Screen</Text>
       </Pressable>
 
+      {/* 🎯 زر فتح شاشة الأهداف (الجديد) */}
+      <Pressable
+        style={[styles.button, { backgroundColor: theme.primary }]}
+        onPress={() => router.push("/GoalsScreen")}
+      >
+        <Text style={styles.buttonText}>🎯 Open Goals Screen</Text>
+      </Pressable>
+
       {/* ⚙️ زر فتح شاشة Settings */}
       <Pressable
         style={[styles.button, { backgroundColor: theme.primary }]}
@@ -114,4 +122,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-});
+})
+;
