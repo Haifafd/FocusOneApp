@@ -106,10 +106,10 @@ export default function HomeScreen() {
 
       {/* TAB BAR مكرر هنا عشان تطلع داخل الصفحة مثل اللي في Settings */}
       <View style={[styles.tabBar, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
-        <TabButton icon="🏠" label="Home" active={true} onPress={() => navigateTo("/Homescreen")} theme={theme} />
-        <TabButton icon="🏳️" label="Goals" active={false} onPress={() => navigateTo("/GoalsScreen")} theme={theme} />
-        <TabButton icon="📊" label="Progress" active={false} onPress={() => navigateTo("/ProgressScreen")} theme={theme} />
-        <TabButton icon="⚙️" label="Settings" active={false} onPress={() => navigateTo("/Settings")} theme={theme} />
+        <TabButton icon="🏠" label="Home" active={true} onPress={() => navigateTo("/tabs/home")} theme={theme} />
+        <TabButton icon="🏳️" label="Goals" active={false} onPress={() => navigateTo("/tabs/goals")} theme={theme} />
+        <TabButton icon="📊" label="Progress" active={false} onPress={() => navigateTo("/tabs/progress")} theme={theme} />
+        <TabButton icon="⚙️" label="Settings" active={false} onPress={() => navigateTo("/tabs/settings")} theme={theme} />
       </View>
     </View>
   );

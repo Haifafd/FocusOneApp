@@ -4,16 +4,11 @@ import { AppContext } from "../contexts/AppContext";
 import { useTheme } from "../contexts/ThemeContext"; 
 import { typography, spacing, radius } from "../constants/typography"; 
 
-export default GoalsScreen;
-
-const GoalsManager = () => {
+export default function GoalsScreen() {
   const { goals, addGoal } = useContext(AppContext);
   const { theme } = useTheme();
 
-  // حالة للتحكم في ظهور واجهة الإضافة (Modal)
   const [isModalVisible, setModalVisible] = useState(false);
-  
-  // حالات إدخال الهدف الجديد
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('High');
@@ -31,7 +26,7 @@ const GoalsManager = () => {
     };
 
     addGoal(newGoal);
-    // إعادة تعيين الحقول وإغلاق الواجهة
+
     setTitle('');
     setDescription('');
     setModalVisible(false);
@@ -39,14 +34,16 @@ const GoalsManager = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* --- واجهة عرض الأهداف (Your Goals) --- */}
+      
       <Text style={[styles.header, { color: theme.text, fontSize: typography.size.xl, fontWeight: typography.weight.bold }]}>
         Your Goals
       </Text>
 
       {goals.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No goals added yet. Tap + to start!</Text>
+          <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+            No goals added yet. Tap + to start!
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -57,7 +54,9 @@ const GoalsManager = () => {
               <View style={styles.cardContent}>
                 <View>
                   <Text style={[styles.goalTitle, { color: theme.text }]}>{item.title}</Text>
-                  <Text style={{ color: theme.textSecondary }}>{item.tasksCount || 0} Tasks • {item.progress}%</Text>
+                  <Text style={{ color: theme.textSecondary }}>
+                    {item.tasksCount || 0} Tasks • {item.progress}%
+                  </Text>
                 </View>
                 <View style={[styles.progressCircle, { borderColor: theme.primary }]}>
                   <Text style={{ color: theme.primary, fontSize: 10 }}>{item.progress}%</Text>
@@ -68,7 +67,6 @@ const GoalsManager = () => {
         />
       )}
 
-      {/* زر الإضافة (+) */}
       <TouchableOpacity 
         style={[styles.addButton, { backgroundColor: theme.primary }]}
         onPress={() => setModalVisible(true)}
@@ -76,10 +74,10 @@ const GoalsManager = () => {
         <Text style={styles.plusIcon}>+</Text>
       </TouchableOpacity>
 
-      {/* --- واجهة إضافة هدف (المودال المنبثق) --- */}
       <Modal visible={isModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
+            
             <View style={styles.headerRow}>
               <Text style={[styles.header, { color: theme.text }]}>Add New Goal</Text>
               <TouchableOpacity onPress={handleSave}>
@@ -110,23 +108,26 @@ const GoalsManager = () => {
             >
               <Text style={{ color: theme.primary }}>Cancel</Text>
             </TouchableOpacity>
+
           </View>
         </View>
       </Modal>
+
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: spacing.xl, paddingTop: 60 },
   header: { marginBottom: spacing.lg },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  emptyText: { fontSize: 14 },
   goalCard: { padding: spacing.md, borderRadius: radius.md, borderWidth: 1, marginBottom: spacing.md },
   cardContent: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  goalTitle: { fontSize: 18, fontWeight: '600' },
   progressCircle: { width: 40, height: 40, borderRadius: 20, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   addButton: { position: 'absolute', bottom: 40, right: 30, width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', elevation: 5 },
   plusIcon: { color: '#fff', fontSize: 35 },
-  // تنسيقات النافذة المنبثقة
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 25, height: '80%' },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
@@ -135,5 +136,3 @@ const styles = StyleSheet.create({
   textArea: { height: 80, textAlignVertical: 'top' },
   closeButton: { marginTop: 20, padding: 12, alignItems: 'center', borderRadius: 10, borderWidth: 1 }
 });
-
-export default GoalsManager;

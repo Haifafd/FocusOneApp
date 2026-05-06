@@ -12,8 +12,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Svg, { Path } from "react-native-svg";
 import { useTheme } from "../contexts/ThemeContext";
 import { router } from "expo-router";
-import Notes from "../notes";
-export default Notes;
 
 export default function NotesScreen() {
   const { theme } = useTheme();

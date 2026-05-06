@@ -1,10 +1,6 @@
 import { Stack } from "expo-router";
 import { useTheme } from "../../contexts/ThemeContext";
-import { Stack } from 'expo-router';
 
-export default function AuthLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
-}
 export default function AuthLayout() {
   const { theme } = useTheme();
 
