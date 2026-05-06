@@ -15,7 +15,13 @@ import { useAuth } from "../../contexts/AuthContext";
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
 import { typography, spacing } from "../../constants/typography";
+import { router } from 'expo-router';
 
+// لما تخلص اللوقن
+const handleLogin = async () => {
+  // كال الـ API...
+  router.replace('/(tabs)/'); // يروح للتابس ومايرجع للـ login
+};
 export default function LoginScreen() {
   const { theme } = useTheme();
   const { login } = useAuth();
@@ -52,7 +58,7 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (result.success) {
-      router.replace("/(tabs)/home");
+      router.replace("/Homescreen");
     } else {
       setErrors({ general: result.error });
     }

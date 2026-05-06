@@ -7,17 +7,10 @@ export default function Index() {
   const router = useRouter();
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: theme.background }]}
-    >
-      <Text style={[styles.title, { color: theme.text }]}>
-        🎯 FocusOne
-      </Text>
-      <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-        Test menu
-      </Text>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Text style={[styles.title, { color: theme.text }]}>🎯 FocusOne</Text>
+      <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Test menu</Text>
 
-      {/* زر فتح الـ Onboarding */}
       <Pressable
         style={[styles.button, { backgroundColor: theme.primary }]}
         onPress={() => router.push("/(onboarding)")}
@@ -25,7 +18,6 @@ export default function Index() {
         <Text style={styles.buttonText}>🎨 Open Onboarding</Text>
       </Pressable>
 
-      {/* زر فتح تسجيل الدخول */}
       <Pressable
         style={[styles.button, { backgroundColor: theme.primary }]}
         onPress={() => router.push("/(auth)/login")}
@@ -33,7 +25,6 @@ export default function Index() {
         <Text style={styles.buttonText}>🔐 Open Login</Text>
       </Pressable>
 
-      {/* 🔥 زر فتح شاشة الفوكس */}
       <Pressable
         style={[styles.button, { backgroundColor: theme.primary }]}
         onPress={() => router.push("/foucss")}
@@ -41,7 +32,6 @@ export default function Index() {
         <Text style={styles.buttonText}>🔥 Open Focus Screen</Text>
       </Pressable>
 
-      {/* 🟢 زر فتح شاشة Session Complete */}
       <Pressable
         style={[styles.button, { backgroundColor: theme.primary }]}
         onPress={() => router.push("/SessionComplete")}
@@ -49,78 +39,47 @@ export default function Index() {
         <Text style={styles.buttonText}>✅ Open Session Complete</Text>
       </Pressable>
 
-      {/* 🏠 زر فتح شاشة Home */}
+      {/* فتح الهوم داخل التابات — مسار متناسق */}
       <Pressable
         style={[styles.button, { backgroundColor: theme.primary }]}
-        onPress={() => router.push("/HomeScreen")}
+        onPress={() => router.push("/tabs/home")}
       >
         <Text style={styles.buttonText}>🏠 Open Home Screen</Text>
       </Pressable>
 
-      {/* 🎯 زر فتح شاشة الأهداف (الجديد) */}
+      {/* فتح الأهداف داخل التابات */}
       <Pressable
         style={[styles.button, { backgroundColor: theme.primary }]}
-        onPress={() => router.push("/GoalsScreen")}
+        onPress={() => router.push("/tabs/goals")}
       >
         <Text style={styles.buttonText}>🎯 Open Goals Screen</Text>
       </Pressable>
 
-      {/* ⚙️ زر فتح شاشة Settings */}
+      {/* فتح الإعدادات داخل التابات */}
       <Pressable
         style={[styles.button, { backgroundColor: theme.primary }]}
-        onPress={() => router.push("/Settings")}
+        onPress={() => router.push("/tabs/settings")}
       >
         <Text style={styles.buttonText}>⚙️ Open Settings</Text>
       </Pressable>
 
-      {/* زر تغيير الثيم */}
       <Pressable
         style={[
           styles.button,
-          {
-            backgroundColor: theme.surface,
-            borderColor: theme.border,
-            borderWidth: 1,
-          },
+          { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 },
         ]}
         onPress={toggleTheme}
       >
-        <Text style={[styles.buttonText, { color: theme.text }]}>
-          🌓 Toggle Theme
-        </Text>
+        <Text style={[styles.buttonText, { color: theme.text }]}>🌓 Toggle Theme</Text>
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-    gap: 12,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    marginBottom: 32,
-  },
-  button: {
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    width: "100%",
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-})
-;
+  container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, gap: 12 },
+  title: { fontSize: 32, fontWeight: "bold", marginBottom: 8 },
+  subtitle: { fontSize: 16, marginBottom: 32 },
+  button: { paddingVertical: 14, paddingHorizontal: 24, borderRadius: 12, width: "100%", alignItems: "center" },
+  buttonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "600" },
+});

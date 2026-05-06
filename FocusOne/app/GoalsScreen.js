@@ -4,6 +4,8 @@ import { AppContext } from "../contexts/AppContext";
 import { useTheme } from "../contexts/ThemeContext"; 
 import { typography, spacing, radius } from "../constants/typography"; 
 
+export default GoalsScreen;
+
 const GoalsManager = () => {
   const { goals, addGoal } = useContext(AppContext);
   const { theme } = useTheme();
