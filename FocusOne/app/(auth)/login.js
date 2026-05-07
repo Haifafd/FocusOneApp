@@ -15,13 +15,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
 import { typography, spacing } from "../../constants/typography";
-import { router } from 'expo-router';
 
-// لما تخلص اللوقن
-const handleLogin = async () => {
-  // كال الـ API...
-  router.replace('/(tabs)/'); // يروح للتابس ومايرجع للـ login
-};
 export default function LoginScreen() {
   const { theme } = useTheme();
   const { login } = useAuth();
@@ -58,7 +52,9 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (result.success) {
-      router.replace("/Homescreen");
+      // 🔥 التعديل الأساسي: استخدم replace بدل push
+      // وخل المسار كامل مع tabs
+      router.replace("/(tabs)/Homescreen");
     } else {
       setErrors({ general: result.error });
     }

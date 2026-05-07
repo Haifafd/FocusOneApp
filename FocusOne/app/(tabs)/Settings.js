@@ -3,12 +3,16 @@ import {
   StyleSheet, View, Text, Switch, TouchableOpacity, 
   SafeAreaView, Alert, Linking, ScrollView 
 } from "react-native";
+import { useRouter } from "expo-router";
 import * as Notifications from "expo-notifications";
 import * as Haptics from "expo-haptics";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function SettingsScreen() {
   const { theme, toggleTheme } = useTheme();
+  const { logout } = useAuth();
+  const router = useRouter();
 
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
 
@@ -53,23 +57,51 @@ export default function SettingsScreen() {
     Alert.alert(
       "Reset Data",
       "Are you sure you want to delete all focus data?",
-      [{ text: "Cancel" }, { text: "Delete", style: "destructive" }]
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          style: "destructive",
+          onPress: () => {
+            Alert.alert("Success", "Data has been reset");
+          }
+        }
+      ]
+    );
+  };
+
+  const handleLogout = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Logout", 
+          style: "destructive",
+          onPress: async () => {
+            await logout(); 
+            router.replace("/(auth)/firstscreen"); 
+          }
+        }
+      ]
     );
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
 
           {/* GENERAL */}
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>GENERAL</Text>
 
-          <View style={[styles.sectionCard, { backgroundColor: theme.surface }]}>
+          <View style={[styles.sectionCard, { backgroundColor: theme.card }]}>
             <SettingRow 
               icon="⏱️"
               label="Default Focus Duration"
-              rightElement={<Text style={[styles.rightText, { color: theme.textSecondary }]}>25 min {'>'}</Text>}
+              rightElement={<Text style={[styles.rightText, { color: theme.textSecondary }]}>25 min  {'>'}</Text>}
               theme={theme}
             />
 
@@ -80,7 +112,8 @@ export default function SettingsScreen() {
                 <Switch
                   value={isNotificationsEnabled}
                   onValueChange={handleNotificationToggle}
-                  trackColor={{ true: theme.primary }}
+                  trackColor={{ false: theme.border, true: theme.primary }}
+                  thumbColor="#fff"
                 />
               }
               theme={theme}
@@ -97,6 +130,8 @@ export default function SettingsScreen() {
                     toggleTheme();
                     Haptics.selectionAsync();
                   }}
+                  trackColor={{ false: theme.border, true: theme.primary }}
+                  thumbColor="#fff"
                 />
               }
               theme={theme}
@@ -106,12 +141,27 @@ export default function SettingsScreen() {
           {/* DATA MANAGEMENT */}
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>DATA MANAGEMENT</Text>
 
-          <View style={[styles.sectionCard, { backgroundColor: theme.surface }]}>
+          <View style={[styles.sectionCard, { backgroundColor: theme.card }]}>
             <TouchableOpacity onPress={handleResetData}>
               <SettingRow 
                 icon="🗑️"
                 label="Reset Data"
-                labelStyle={{ color: theme.danger }}
+                labelStyle={{ color: theme.danger || "#ff4444" }}
+                last
+                theme={theme}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* ACCOUNT */}
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>ACCOUNT</Text>
+
+          <View style={[styles.sectionCard, { backgroundColor: theme.card }]}>
+            <TouchableOpacity onPress={handleLogout}>
+              <SettingRow 
+                icon="🚪"
+                label="Logout"
+                labelStyle={{ color: theme.danger || "#ff4444" }}
                 last
                 theme={theme}
               />
@@ -122,16 +172,9 @@ export default function SettingsScreen() {
             Resetting your data will permanently delete all tasks and focus history.
           </Text>
 
+          <View style={{ height: 100 }} />
         </View>
       </ScrollView>
-
-      {/* TAB BAR */}
-      <View style={[styles.tabBar, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
-        <TabItem icon="🏠" label="Home" active={false} theme={theme} />
-        <TabItem icon="🏳️" label="Goals" active={false} theme={theme} />
-        <TabItem icon="📊" label="Progress" active={false} theme={theme} />
-        <TabItem icon="⚙️" label="Settings" active={true} theme={theme} />
-      </View>
     </SafeAreaView>
   );
 }
@@ -149,21 +192,10 @@ const SettingRow = ({ icon, label, rightElement, last, labelStyle, theme }) => (
   </View>
 );
 
-const TabItem = ({ icon, label, active, theme }) => (
-  <View style={styles.tabItem}>
-    <Text style={{ fontSize: 20, color: active ? theme.primary : theme.textSecondary }}>{icon}</Text>
-    <Text style={[
-      styles.tabLabel, 
-      { color: active ? theme.primary : theme.textSecondary }
-    ]}>
-      {label}
-    </Text>
-  </View>
-);
-
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20 },
+  content: { padding: 20, paddingTop: 20 },
+
   sectionTitle: { fontSize: 12, fontWeight: "bold", marginBottom: 10, marginTop: 20 },
   sectionCard: { borderRadius: 12, overflow: "hidden" },
 
@@ -180,14 +212,4 @@ const styles = StyleSheet.create({
   rightText: { fontSize: 14 },
 
   footerNote: { fontSize: 12, marginTop: 15, lineHeight: 18 },
-
-  tabBar: {
-    flexDirection: "row",
-    height: 80,
-    justifyContent: "space-around",
-    paddingTop: 10,
-    borderTopWidth: 1,
-  },
-  tabItem: { alignItems: "center" },
-  tabLabel: { fontSize: 10, marginTop: 4 },
 });

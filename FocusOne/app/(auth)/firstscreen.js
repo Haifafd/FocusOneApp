@@ -6,10 +6,17 @@ import {
   StatusBar,
   TouchableOpacity,
 } from "react-native";
-
+import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function App() {
+export default function FirstScreen() {
+  const router = useRouter();
+
+  const handleStart = () => {
+    // عند الضغط على زر Start يروح لشاشة تسجيل الدخول
+    router.push("/login");
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
@@ -31,11 +38,7 @@ export default function App() {
 
         {/* علامة الصح */}
         <View style={styles.checkCircle}>
-          <Ionicons
-            name="checkmark"
-            size={24}
-            color="#FFFFFF"
-          />
+          <Ionicons name="checkmark" size={24} color="#FFFFFF" />
         </View>
       </View>
 
@@ -44,7 +47,11 @@ export default function App() {
       <Text style={styles.subtitle}>ACHIEVE MORE</Text>
 
       {/* زر البداية */}
-      <TouchableOpacity style={styles.startButton} activeOpacity={0.8}>
+      <TouchableOpacity 
+        style={styles.startButton} 
+        onPress={handleStart}
+        activeOpacity={0.8}
+      >
         <Text style={styles.startText}>Start</Text>
       </TouchableOpacity>
     </View>
@@ -110,16 +117,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: -15,
     bottom: -10,
-
     width: 42,
     height: 42,
     borderRadius: 21,
-
     backgroundColor: "#1E5DB8",
-
     justifyContent: "center",
     alignItems: "center",
-
     borderWidth: 3,
     borderColor: "#FFFFFF",
   },
@@ -145,7 +148,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 70,
     borderRadius: 30,
-
     shadowColor: "#1E5DB8",
     shadowOffset: {
       width: 0,
@@ -153,7 +155,6 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.9,
     shadowRadius: 15,
-
     elevation: 12,
   },
 

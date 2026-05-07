@@ -3,7 +3,6 @@ import React, { createContext, useState } from 'react';
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  // إدارة البيانات (Global State)
   const [goals, setGoals] = useState([
     {
       id: '1',
@@ -26,15 +25,12 @@ export const AppProvider = ({ children }) => {
 
   const [selectedGoalId, setSelectedGoalId] = useState(null);
 
-  // وظيفة تحديث حالة المهمة
   const toggleTask = (goalId, taskId) => {
     setGoals(prevGoals =>
       prevGoals.map(goal => {
         if (goal.id === goalId) {
           const updatedTasks = goal.tasks.map(task =>
-            task.id === taskId
-              ? { ...task, completed: !task.completed }
-              : task
+            task.id === taskId ? { ...task, completed: !task.completed } : task
           );
           return { ...goal, tasks: updatedTasks };
         }
@@ -44,15 +40,7 @@ export const AppProvider = ({ children }) => {
   };
 
   return (
-    <AppContext.Provider
-      value={{
-        goals,
-        setGoals,
-        selectedGoalId,
-        setSelectedGoalId,
-        toggleTask
-      }}
-    >
+    <AppContext.Provider value={{ goals, setGoals, selectedGoalId, setSelectedGoalId, toggleTask }}>
       {children}
     </AppContext.Provider>
   );

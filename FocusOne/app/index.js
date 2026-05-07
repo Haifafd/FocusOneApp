@@ -1,85 +1,20 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { useRouter } from "expo-router";
-import { useTheme } from "../contexts/ThemeContext";
+import { Redirect } from 'expo-router';
+import { useAuth } from '../contexts/AuthContext';
+import { ActivityIndicator, View } from 'react-native';
 
 export default function Index() {
-  const { theme, toggleTheme } = useTheme();
-  const router = useRouter();
-
-  return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Text style={[styles.title, { color: theme.text }]}>🎯 FocusOne</Text>
-      <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Test menu</Text>
-
-      <Pressable
-        style={[styles.button, { backgroundColor: theme.primary }]}
-        onPress={() => router.push("/(onboarding)")}
-      >
-        <Text style={styles.buttonText}>🎨 Open Onboarding</Text>
-      </Pressable>
-
-      <Pressable
-        style={[styles.button, { backgroundColor: theme.primary }]}
-        onPress={() => router.push("/(auth)/login")}
-      >
-        <Text style={styles.buttonText}>🔐 Open Login</Text>
-      </Pressable>
-
-      <Pressable
-        style={[styles.button, { backgroundColor: theme.primary }]}
-        onPress={() => router.push("/foucss")}
-      >
-        <Text style={styles.buttonText}>🔥 Open Focus Screen</Text>
-      </Pressable>
-
-      <Pressable
-        style={[styles.button, { backgroundColor: theme.primary }]}
-        onPress={() => router.push("/SessionComplete")}
-      >
-        <Text style={styles.buttonText}>✅ Open Session Complete</Text>
-      </Pressable>
-
-      {/* فتح الهوم داخل التابات — مسار متناسق */}
-      <Pressable
-        style={[styles.button, { backgroundColor: theme.primary }]}
-        onPress={() => router.push("/tabs/home")}
-      >
-        <Text style={styles.buttonText}>🏠 Open Home Screen</Text>
-      </Pressable>
-
-      {/* فتح الأهداف داخل التابات */}
-      <Pressable
-        style={[styles.button, { backgroundColor: theme.primary }]}
-        onPress={() => router.push("/tabs/goals")}
-      >
-        <Text style={styles.buttonText}>🎯 Open Goals Screen</Text>
-      </Pressable>
-
-      {/* فتح الإعدادات داخل التابات */}
-      <Pressable
-        style={[styles.button, { backgroundColor: theme.primary }]}
-        onPress={() => router.push("/tabs/settings")}
-      >
-        <Text style={styles.buttonText}>⚙️ Open Settings</Text>
-      </Pressable>
-
-      <Pressable
-        style={[
-          styles.button,
-          { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 },
-        ]}
-        onPress={toggleTheme}
-      >
-        <Text style={[styles.buttonText, { color: theme.text }]}>🌓 Toggle Theme</Text>
-      </Pressable>
-    </View>
-  );
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#1E5DB8" />
+      </View>
+    );
+  }
+  
+  if (isAuthenticated) {
+return <Redirect href="/(tabs)/Homescreen" />;  } else {
+    return <Redirect href="/(auth)/firstscreen" />;
+  }
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, gap: 12 },
-  title: { fontSize: 32, fontWeight: "bold", marginBottom: 8 },
-  subtitle: { fontSize: 16, marginBottom: 32 },
-  button: { paddingVertical: 14, paddingHorizontal: 24, borderRadius: 12, width: "100%", alignItems: "center" },
-  buttonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "600" },
-});

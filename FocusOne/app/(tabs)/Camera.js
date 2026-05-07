@@ -15,7 +15,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import Svg, { Path } from "react-native-svg";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
 import { router } from "expo-router";
 
 export default function CameraScreen() {
@@ -60,7 +60,7 @@ export default function CameraScreen() {
     setPhoto(null);
     setPaths([]);
 
-    router.push("/notes");
+router.push("/(tabs)/notes");
   };
 
   const getDate = () => {
