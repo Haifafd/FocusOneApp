@@ -9,15 +9,15 @@ import {
   Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../contexts/ThemeContext";
-import { storage, STORAGE_KEYS } from "../../services/storage";
-import Button from "../../components/common/Button";
+import { useTheme } from "../../src/contexts/ThemeContext";
+import { storage, STORAGE_KEYS } from "../../src/services/storage";
+import Button from "../../src/components/ui/Button";
 import {
   WelcomeIllustration,
   OneGoalIllustration,
   FocusSessionsIllustration,
-} from "../../components/onboarding/OnboardingIllustration";
-import { typography, spacing } from "../../constants/typography";
+} from "../../src/components/onboarding/OnboardingIllustration";
+import { typography, spacing } from "../../src/theme/typography";
 
 const { width } = Dimensions.get("window");
 
@@ -68,7 +68,7 @@ export default function OnboardingScreen() {
 
   const finishOnboarding = async () => {
     await storage.set(STORAGE_KEYS.ONBOARDING_DONE, true);
-    router.replace("/(auth)/login");
+    router.replace("/(auth)/welcome");
   };
 
   const handleScroll = (event) => {

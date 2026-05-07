@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useColorScheme } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { lightTheme, darkTheme } from "../constants/colors";
+import { lightTheme, darkTheme } from "../theme/colors";
 
 const ThemeContext = createContext();
 const STORAGE_KEY = "@focusone:theme_mode";

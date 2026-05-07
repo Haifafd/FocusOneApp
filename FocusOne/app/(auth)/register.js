@@ -10,11 +10,11 @@ import {
   Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../contexts/ThemeContext";
-import { useAuth } from "../../contexts/AuthContext";
-import Input from "../../components/common/Input";
-import Button from "../../components/common/Button";
-import { typography, spacing } from "../../constants/typography";
+import { useTheme } from "../../src/contexts/ThemeContext";
+import { useAuth } from "../../src/contexts/AuthContext";
+import Input from "../../src/components/ui/Input";
+import Button from "../../src/components/ui/Button";
+import { typography, spacing } from "../../src/theme/typography";
 
 export default function RegisterScreen() {
   const { theme } = useTheme();
@@ -57,7 +57,7 @@ export default function RegisterScreen() {
     setLoading(false);
 
     if (result.success) {
-      router.replace("/(tabs)/home");
+      router.replace("/(tabs)");
     } else {
       setErrors({ general: result.error });
     }

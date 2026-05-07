@@ -6,10 +6,10 @@ import {
 import { useRouter } from "expo-router";
 import * as Notifications from "expo-notifications";
 import * as Haptics from "expo-haptics";
-import { useTheme } from "../../contexts/ThemeContext";
-import { useAuth } from "../../contexts/AuthContext";
+import { useTheme } from "../../src/contexts/ThemeContext";
+import { useAuth } from "../../src/contexts/AuthContext";
 
-export default function SettingsScreen() {
+export default function Settings() {
   const { theme, toggleTheme } = useTheme();
   const { logout } = useAuth();
   const router = useRouter();
@@ -81,8 +81,8 @@ export default function SettingsScreen() {
           text: "Logout", 
           style: "destructive",
           onPress: async () => {
-            await logout(); 
-            router.replace("/(auth)/firstscreen"); 
+            await logout();
+            router.replace("/(auth)/welcome");
           }
         }
       ]

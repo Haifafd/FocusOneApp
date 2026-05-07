@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../contexts/ThemeContext";
+import { useTheme } from "../../src/contexts/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function ProgressScreen() {
+export default function Progress() {
   const { theme } = useTheme();
   const router = useRouter();
 
@@ -65,7 +65,7 @@ export default function ProgressScreen() {
 
           <TouchableOpacity
             style={[styles.primaryButton, { backgroundColor: theme.primary }]}
-            onPress={() => router.push("/(tabs)/foucss")}
+            onPress={() => router.push("/focus/quick")}
           >
             <Text style={styles.primaryButtonText}>Open Focus Session</Text>
           </TouchableOpacity>

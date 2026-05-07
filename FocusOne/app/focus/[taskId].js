@@ -1,4 +1,3 @@
-// app/Foucss.js
 import React, { useState, useRef, useEffect } from "react";
 import {
   SafeAreaView,
@@ -13,47 +12,15 @@ import {
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { useTheme } from "../../src/contexts/ThemeContext";
 
-// 🎨 الثيمات
-const themes = {
-  light: {
-    background: "#F7F7F7",
-    text: "#222",
-    secondary: "#666",
-    primary: "#4A90E2",
-    surface: "#fff",
-  },
-  dark: {
-    background: "#1A1A1A",
-    text: "#fff",
-    secondary: "#aaa",
-    primary: "#BB86FC",
-    surface: "#222",
-  },
-  lavender: {
-    background: "#EDE7F6",
-    text: "#3E2C5A",
-    secondary: "#6A5B87",
-    primary: "#9575CD",
-    surface: "#D1C4E9",
-  },
-  blue: {
-    background: "#E3F2FD",
-    text: "#0D47A1",
-    secondary: "#5472D3",
-    primary: "#2196F3",
-    surface: "#BBDEFB",
-  },
-};
-
-export default function Foucss({ route }) {
+export default function FocusSession() {
   const router = useRouter();
+  const { taskId } = useLocalSearchParams();
+  const { theme } = useTheme();
 
-  const task = route?.params?.task || { title: "Focus Task", duration: 1 };
-
-  const [selectedTheme, setSelectedTheme] = useState("light");
-  const theme = themes[selectedTheme];
+  const task = { title: "Focus Task", duration: 1, id: taskId };
 
   const [duration, setDuration] = useState(String(task.duration));
   const total = Number(duration || 1) * 60;
@@ -117,7 +84,7 @@ export default function Foucss({ route }) {
         if (prev <= 1) {
           clearInterval(intervalRef.current);
           setRunning(false);
-          router.replace("/SessionCompleteScreen");
+          router.replace("/focus/complete");
           return 0;
         }
         return prev - 1;
@@ -133,39 +100,13 @@ export default function Foucss({ route }) {
 
       {/* رجوع */}
       <View style={styles.top}>
-        <TouchableOpacity onPress={() => router.push("/Homescreen")}>
+        <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={28} color={theme.text} />
         </TouchableOpacity>
       </View>
 
-      {/* اختيار الثيم */}
-      <View style={styles.themeRow}>
-        {Object.keys(themes).map((key) => (
-          <TouchableOpacity
-            key={key}
-            onPress={() => setSelectedTheme(key)}
-            style={[
-              styles.themeBtn,
-              {
-                backgroundColor:
-                  selectedTheme === key ? theme.primary : theme.surface,
-              },
-            ]}
-          >
-            <Text
-              style={{
-                color: selectedTheme === key ? "#fff" : theme.text,
-                fontSize: 12,
-              }}
-            >
-              {key}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
       <View style={styles.content}>
-        <Text style={[styles.smallLabel, { color: theme.secondary }]}>
+        <Text style={[styles.smallLabel, { color: theme.textSecondary }]}>
           FOCUS SESSION
         </Text>
 
@@ -181,14 +122,14 @@ export default function Foucss({ route }) {
           <Text style={[styles.timerText, { color: theme.text }]}>
             {minutes}:{seconds}
           </Text>
-          <Text style={{ color: theme.secondary }}>Tap to set time</Text>
+          <Text style={{ color: theme.textSecondary }}>Tap to set time</Text>
         </TouchableOpacity>
 
         {/* الاقتباس */}
         {loading ? (
           <ActivityIndicator size="small" color={theme.primary} />
         ) : (
-          <Text style={[styles.quote, { color: theme.secondary }]}>
+          <Text style={[styles.quote, { color: theme.textSecondary }]}>
             "{quote}"
           </Text>
         )}
@@ -217,7 +158,7 @@ export default function Foucss({ route }) {
         </TouchableOpacity>
 
         {/* إيقاف */}
-        <TouchableOpacity onPress={() => router.push("/Homescreen")}>
+        <TouchableOpacity onPress={() => router.replace("/(tabs)")}>
           <Text style={[styles.stopText, { color: theme.text }]}>
             Stop
           </Text>

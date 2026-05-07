@@ -1,101 +1,32 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "../../contexts/ThemeContext";
+import { useTheme } from "../../src/contexts/ThemeContext";
 
 export default function TabsLayout() {
   const { theme } = useTheme();
-
   return (
     <Tabs
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
-
-        // 🎨 Style
-        tabBarStyle: {
-          backgroundColor: theme.card,
-          borderTopColor: theme.border,
-          height: 70,
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
-
         tabBarActiveTintColor: theme.primary,
         tabBarInactiveTintColor: theme.textSecondary,
-        tabBarLabelStyle: {
-          fontSize: 11,
+        tabBarStyle: { backgroundColor: theme.card, borderTopColor: theme.border, height: 70, paddingBottom: 10, paddingTop: 8 },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
+        tabBarIcon: ({ color, focused, size }) => {
+          const iconMap = {
+            index: focused ? "home" : "home-outline",
+            goals: focused ? "flag" : "flag-outline",
+            progress: focused ? "stats-chart" : "stats-chart-outline",
+            settings: focused ? "settings" : "settings-outline",
+          };
+          return <Ionicons name={iconMap[route.name]} size={size} color={color} />;
         },
-
-        // 🚨 مهم: يمنع مشاكل التنقل الغلط
-        lazy: true,
-      }}
+      })}
     >
-
-      {/* 🏠 Home */}
-      <Tabs.Screen
-        name="Homescreen"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
-          ),
-        }}
-      />
-
-      {/* 🎯 Goals */}
-      <Tabs.Screen
-        name="GoalsScreen"
-        options={{
-          title: "Goals",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="flag-outline" size={size} color={color} />
-          ),
-        }}
-      />
-
-      {/* 📊 Progress */}
-      <Tabs.Screen
-        name="ProgressScreen"
-        options={{
-          title: "Progress",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="stats-chart-outline" size={size} color={color} />
-          ),
-        }}
-      />
-
-      {/* 📸 Camera */}
-      <Tabs.Screen
-        name="camera"
-        options={{
-          title: "Camera",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="camera-outline" size={size} color={color} />
-          ),
-        }}
-      />
-
-      {/* 📝 Notes */}
-      <Tabs.Screen
-        name="NotesScreen"
-        options={{
-          title: "Notes",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="document-text-outline" size={size} color={color} />
-          ),
-        }}
-      />
-
-      {/* ⚙️ Settings */}
-      <Tabs.Screen
-        name="Settings"
-        options={{
-          title: "Settings",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" size={size} color={color} />
-          ),
-        }}
-      />
-
+      <Tabs.Screen name="index" options={{ title: "Home" }} />
+      <Tabs.Screen name="goals" options={{ title: "Goals" }} />
+      <Tabs.Screen name="progress" options={{ title: "Progress" }} />
+      <Tabs.Screen name="settings" options={{ title: "Settings" }} />
     </Tabs>
   );
 }

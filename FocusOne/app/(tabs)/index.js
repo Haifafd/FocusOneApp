@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -6,29 +6,15 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { AppContext } from "../../contexts/AppContext";
-import { useTheme } from "../../contexts/ThemeContext";
-import { useAuth } from "../../contexts/AuthContext";
+import { useTheme } from "../../src/contexts/ThemeContext";
+import { useAuth } from "../../src/contexts/AuthContext";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 
-export default function HomeScreen() {
-  let goals = [];
-  let selectedGoalId = null;
-  let setSelectedGoalId = () => {};
-
-  try {
-    const context = useContext(AppContext);
-    if (context) {
-      goals = context.goals || [];
-      selectedGoalId = context.selectedGoalId;
-      setSelectedGoalId = context.setSelectedGoalId || (() => {});
-    } else {
-      goals = [
-        { id: '1', title: 'Graduation Project', progress: 85, tasks: [{ title: 'UI Design', duration: 30, completed: false }] }
-      ];
-    }
-  } catch (e) {}
+export default function Home() {
+  const goals = [
+    { id: '1', title: 'Graduation Project', progress: 85, tasks: [{ title: 'UI Design', duration: 30, completed: false }] }
+  ];
+  const selectedGoalId = null;
 
   const { theme } = useTheme();
   const { user } = useAuth();
@@ -75,7 +61,7 @@ export default function HomeScreen() {
           </Text>
           <TouchableOpacity 
             style={[styles.startBtn, { backgroundColor: theme.primary }]} 
-            onPress={() => router.push("/foucss")}
+            onPress={() => router.push("/focus/quick")}
           >
             <Text style={styles.btnText}>Start Focus</Text>
           </TouchableOpacity>

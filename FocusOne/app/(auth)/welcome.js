@@ -9,12 +9,12 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function FirstScreen() {
+export default function Welcome() {
   const router = useRouter();
 
   const handleStart = () => {
     // عند الضغط على زر Start يروح لشاشة تسجيل الدخول
-    router.push("/login");
+    router.push("/(auth)/login");
   };
 
   return (

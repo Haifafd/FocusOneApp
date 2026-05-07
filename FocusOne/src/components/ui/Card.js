@@ -1,6 +1,6 @@
 import { View, StyleSheet } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
-import { spacing, radius } from "../../constants/typography";
+import { spacing, radius } from "../../theme/typography";
 
 export default function Card({ children, style }) {
   const { theme } = useTheme();

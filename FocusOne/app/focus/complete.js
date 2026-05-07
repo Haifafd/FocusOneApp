@@ -7,10 +7,12 @@ import {
   SafeAreaView, 
   StatusBar 
 } from "react-native";
-import { useTheme } from "../contexts/ThemeContext";
+import { useRouter } from "expo-router";
+import { useTheme } from "../../src/contexts/ThemeContext";
 
-export default function SessionCompleteScreen({ navigation }) {
+export default function FocusComplete() {
   const { theme } = useTheme();
+  const router = useRouter();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -18,7 +20,7 @@ export default function SessionCompleteScreen({ navigation }) {
 
       {/* Back */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Text style={[styles.backIcon, { color: theme.text }]}>{'<'}</Text>
         </TouchableOpacity>
       </View>
@@ -56,14 +58,14 @@ export default function SessionCompleteScreen({ navigation }) {
           {/* Buttons */}
           <TouchableOpacity 
             style={[styles.mainButton, { backgroundColor: theme.primary }]}
-            onPress={() => navigation.navigate("AddNote")}
+            onPress={() => router.replace("/note/new")}
           >
             <Text style={styles.mainButtonText}>📄 Add Note</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={[styles.secondaryButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
-            onPress={() => navigation.replace("Tabs")}
+            onPress={() => router.replace("/(tabs)")}
           >
             <Text style={[styles.secondaryButtonText, { color: theme.primary }]}>🏠 Back to Home</Text>
           </TouchableOpacity>

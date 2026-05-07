@@ -15,10 +15,10 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import Svg, { Path } from "react-native-svg";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useTheme } from "../../contexts/ThemeContext";
+import { useTheme } from "../../src/contexts/ThemeContext";
 import { router } from "expo-router";
 
-export default function CameraScreen() {
+export default function NewNote() {
   const { theme } = useTheme();
 
   const [photo, setPhoto] = useState(null);
@@ -60,7 +60,7 @@ export default function CameraScreen() {
     setPhoto(null);
     setPaths([]);
 
-router.push("/(tabs)/notes");
+router.replace("/note");
   };
 
   const getDate = () => {
@@ -123,7 +123,7 @@ router.push("/(tabs)/notes");
 
       {/* Header */}
       <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-        <TouchableOpacity onPress={() => router.push("/notes")}>
+        <TouchableOpacity onPress={() => router.replace("/note")}>
           <Text style={[styles.backArrow, { color: theme.primary }]}>{"<"}</Text>
         </TouchableOpacity>
 

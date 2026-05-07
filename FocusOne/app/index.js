@@ -1,21 +1,25 @@
 import { Redirect } from "expo-router";
-import { useAuth } from "../contexts/AuthContext";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
+import { useAuth } from "../src/contexts/AuthContext";
+import { storage, STORAGE_KEYS } from "../src/services/storage";
 
 export default function Index() {
-  const { user, isLoaded } = useAuth();
+  const { user, isLoaded: authLoaded } = useAuth();
+  const [onboardingDone, setOnboardingDone] = useState(null);
 
-  if (!isLoaded) {
+  useEffect(() => {
+    storage.get(STORAGE_KEYS.ONBOARDING_DONE).then((v) => setOnboardingDone(!!v));
+  }, []);
+
+  if (!authLoaded || onboardingDone === null) {
     return (
-      <View style={{ flex: 1, justifyContent: "center" }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
       </View>
     );
   }
-
-  if (user) {
-    return <Redirect href="/(tabs)/Homescreen" />;
-  }
-
-  return <Redirect href="/(auth)/login" />;
+  if (!onboardingDone) return <Redirect href="/(onboarding)" />;
+  if (!user) return <Redirect href="/(auth)/welcome" />;
+  return <Redirect href="/(tabs)" />;
 }

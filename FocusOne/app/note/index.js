@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useTheme } from "../../contexts/ThemeContext";
+import { useTheme } from "../../src/contexts/ThemeContext";
 import { useRouter, useFocusEffect } from "expo-router";
 import Svg, { Path } from "react-native-svg";
 
-export default function NotesScreen() {
+export default function Notes() {
   const { theme } = useTheme();
   const router = useRouter();
   const [notes, setNotes] = useState([]);
@@ -47,7 +47,7 @@ export default function NotesScreen() {
         <Text style={[styles.headerTitle, { color: theme.text }]}>Your Notes</Text>
 
         {/* زر الإيموجي الجديد */}
-        <TouchableOpacity onPress={() => router.push("/(tabs)/camera")}>
+        <TouchableOpacity onPress={() => router.push("/note/new")}>
           <Text style={[styles.emojiAdd, { color: theme.primary }]}>📝</Text>
         </TouchableOpacity>
       </View>

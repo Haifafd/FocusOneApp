@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { TextInput, View, Text, StyleSheet } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
-import { typography, spacing, radius } from "../../constants/typography";
+import { typography, spacing, radius } from "../../theme/typography";
 
 export default function Input({
   label,
