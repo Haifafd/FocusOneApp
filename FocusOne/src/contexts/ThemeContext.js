@@ -17,7 +17,7 @@ export function ThemeProvider({ children }) {
         const saved = await AsyncStorage.getItem(STORAGE_KEY);
         if (saved) setMode(saved);
       } catch (e) {
-        console.log("خطأ في تحميل الثيم:", e);
+        console.warn("خطأ في تحميل الثيم:", e);
       } finally {
         setIsLoaded(true);
       }
@@ -33,7 +33,7 @@ export function ThemeProvider({ children }) {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, newMode);
     } catch (e) {
-      console.log("خطأ في حفظ الثيم:", e);
+      console.warn("خطأ في حفظ الثيم:", e);
     }
   };
 

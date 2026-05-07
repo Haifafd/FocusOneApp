@@ -16,6 +16,7 @@ import { SettingsProvider } from "../src/contexts/SettingsContext";
 import { GoalsProvider } from "../src/contexts/GoalsContext";
 import { SessionsProvider } from "../src/contexts/SessionsContext";
 import { NotesProvider } from "../src/contexts/NotesContext";
+import ErrorBoundary from "../src/components/ui/ErrorBoundary";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -44,14 +45,17 @@ export default function RootLayout() {
             <GoalsProvider>
               <SessionsProvider>
                 <NotesProvider>
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="index" />
-                    <Stack.Screen name="(onboarding)" />
-                    <Stack.Screen name="(auth)" />
-                    <Stack.Screen name="(tabs)" />
-                    <Stack.Screen name="focus" />
-                    <Stack.Screen name="note" />
-                  </Stack>
+                  <ErrorBoundary>
+                    <Stack screenOptions={{ headerShown: false }}>
+                      <Stack.Screen name="index" />
+                      <Stack.Screen name="(onboarding)" />
+                      <Stack.Screen name="(auth)" />
+                      <Stack.Screen name="(tabs)" />
+                      <Stack.Screen name="focus" />
+                      <Stack.Screen name="note" />
+                      <Stack.Screen name="goal" />
+                    </Stack>
+                  </ErrorBoundary>
                 </NotesProvider>
               </SessionsProvider>
             </GoalsProvider>

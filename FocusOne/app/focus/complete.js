@@ -1,184 +1,85 @@
-import React from "react";
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  SafeAreaView, 
-  StatusBar 
-} from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Animated, { ZoomIn, FadeInDown } from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../src/contexts/ThemeContext";
 import { useSessions } from "../../src/contexts/SessionsContext";
+import Button from "../../src/components/ui/Button";
+import { typography, spacing, radius } from "../../src/theme";
 
 export default function FocusComplete() {
   const { theme } = useTheme();
   const router = useRouter();
   const { duration } = useLocalSearchParams();
   const { currentStreak } = useSessions();
+
   const minutes = duration || "25";
   const streakLabel = `${currentStreak} ${currentStreak === 1 ? "Day" : "Days"}`;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={["top", "bottom"]}>
+      <View style={styles.content}>
+        <Animated.View
+          entering={ZoomIn.duration(450)}
+          style={[styles.checkCircle, { backgroundColor: theme.primary }]}
+        >
+          <Ionicons name="checkmark" size={56} color={theme.onPrimary} />
+        </Animated.View>
 
-      {/* Back */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={[styles.backIcon, { color: theme.text }]}>{'<'}</Text>
-        </TouchableOpacity>
+        <Animated.View entering={FadeInDown.duration(400).delay(200)} style={styles.heading}>
+          <Text style={[styles.title, { color: theme.text, fontFamily: typography.family.bold }]}>
+            Session Complete
+          </Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+            Great work! You finished your focus session.
+          </Text>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.duration(400).delay(300)} style={styles.statsRow}>
+          <View style={[styles.statBox, { backgroundColor: theme.surfaceMuted }]}>
+            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: typography.family.semibold }]}>
+              DURATION
+            </Text>
+            <Text style={[styles.statValue, { color: theme.primary, fontFamily: typography.family.extrabold }]}>
+              {minutes}:00
+            </Text>
+          </View>
+
+          <View style={[styles.statBox, { backgroundColor: theme.surfaceMuted }]}>
+            <Text style={[styles.statLabel, { color: theme.textSecondary, fontFamily: typography.family.semibold }]}>
+              STREAK
+            </Text>
+            <Text style={[styles.statValue, { color: theme.warning, fontFamily: typography.family.extrabold }]}>
+              {streakLabel}
+            </Text>
+          </View>
+        </Animated.View>
       </View>
 
-      {/* Card */}
-      <View style={styles.cardContainer}>
-        <View style={[styles.card, { backgroundColor: theme.surface, shadowColor: theme.shadow }]}>
-
-          {/* Success Icon */}
-          <View style={[styles.successCircle, { backgroundColor: theme.surface }]}>
-            <View style={[styles.innerCircle, { backgroundColor: theme.primary }]}>
-              <Text style={styles.checkMark}>✓</Text>
-            </View>
-          </View>
-
-          <Text style={[styles.title, { color: theme.text }]}>Session Complete</Text>
-
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            Great work! You've successfully completed your focus session.
-          </Text>
-
-          {/* Stats */}
-          <View style={styles.statsRow}>
-            <View style={[styles.statBox, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>DURATION</Text>
-              <Text style={[styles.statValue, { color: theme.primary }]}>{minutes}:00</Text>
-            </View>
-
-            <View style={[styles.statBox, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>STREAKS</Text>
-              <Text style={[styles.statValue, { color: theme.danger }]}>{streakLabel}</Text>
-            </View>
-          </View>
-
-          {/* Buttons */}
-          <TouchableOpacity 
-            style={[styles.mainButton, { backgroundColor: theme.primary }]}
-            onPress={() => router.replace("/note/new")}
-          >
-            <Text style={styles.mainButtonText}>📄 Add Note</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.secondaryButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
-            onPress={() => router.replace("/(tabs)")}
-          >
-            <Text style={[styles.secondaryButtonText, { color: theme.primary }]}>🏠 Back to Home</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.maybeLater}>
-            <Text style={[styles.maybeLaterText, { color: theme.textSecondary }]}>Maybe later</Text>
-          </TouchableOpacity>
-
-        </View>
+      <View style={styles.actions}>
+        <Button title="📝  Add a Note" size="lg" onPress={() => router.replace("/note/new")} />
+        <Button
+          title="🏠  Back to Home"
+          variant="outline"
+          onPress={() => router.replace("/(tabs)")}
+          style={{ marginTop: spacing.sm }}
+        />
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingTop: 10 },
-  backButton: { width: 40, height: 40, justifyContent: "center" },
-  backIcon: { fontSize: 24, fontWeight: "300" },
-
-  cardContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 30,
-  },
-
-  card: {
-    width: "100%",
-    borderRadius: 35,
-    padding: 30,
-    alignItems: "center",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-
-  successCircle: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-
-  innerCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  checkMark: { color: "white", fontSize: 20, fontWeight: "bold" },
-
-  title: { fontSize: 22, fontWeight: "bold", marginBottom: 10 },
-
-  subtitle: {
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 30,
-    paddingHorizontal: 10,
-  },
-
-  statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    marginBottom: 30,
-  },
-
-  statBox: {
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderRadius: 15,
-    width: "47%",
-    alignItems: "center",
-  },
-
-  statLabel: { fontSize: 10, fontWeight: "700", marginBottom: 5 },
-
-  statValue: { fontSize: 18, fontWeight: "bold" },
-
-  mainButton: {
-    width: "100%",
-    paddingVertical: 16,
-    borderRadius: 15,
-    alignItems: "center",
-    marginBottom: 12,
-  },
-
-  mainButtonText: { color: "white", fontWeight: "bold", fontSize: 16 },
-
-  secondaryButton: {
-    width: "100%",
-    paddingVertical: 16,
-    borderRadius: 15,
-    alignItems: "center",
-    borderWidth: 1,
-    marginBottom: 20,
-  },
-
-  secondaryButtonText: { fontWeight: "bold", fontSize: 16 },
-
-  maybeLater: { marginBottom: 10 },
-
-  maybeLaterText: { fontSize: 14 },
+  safe: { flex: 1 },
+  content: { flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl, gap: spacing["2xl"] },
+  checkCircle: { width: 110, height: 110, borderRadius: 55, alignItems: "center", justifyContent: "center" },
+  heading: { alignItems: "center", gap: spacing.sm },
+  title: { fontSize: typography.size["2xl"] },
+  subtitle: { fontSize: typography.size.base, textAlign: "center", maxWidth: 300, lineHeight: 22 },
+  statsRow: { flexDirection: "row", gap: spacing.md, width: "100%" },
+  statBox: { flex: 1, padding: spacing.lg, borderRadius: radius.lg, alignItems: "center", gap: spacing.xs },
+  statLabel: { fontSize: 10, letterSpacing: 1.2 },
+  statValue: { fontSize: typography.size.xl },
+  actions: { paddingHorizontal: spacing.xl, paddingBottom: spacing.lg, gap: spacing.sm },
 });

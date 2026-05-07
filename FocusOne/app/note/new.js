@@ -1,326 +1,182 @@
-import React, { useState, useRef } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  SafeAreaView,
   TextInput,
   ScrollView,
+  Image,
+  Pressable,
   Alert,
   Modal,
-  PanResponder,
+  StyleSheet,
 } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import Svg, { Path } from "react-native-svg";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useTheme } from "../../src/contexts/ThemeContext";
 import { useNotes } from "../../src/contexts/NotesContext";
-import { router } from "expo-router";
+import { useToast } from "../../src/contexts/ToastContext";
+import { useHaptics } from "../../src/hooks/useHaptics";
+import { formatDate } from "../../src/utils/format";
+import Header from "../../src/components/ui/Header";
+import Button from "../../src/components/ui/Button";
+import DrawingCanvas from "../../src/components/notes/DrawingCanvas";
+import { typography, spacing, radius } from "../../src/theme";
 
 export default function NewNote() {
   const { theme } = useTheme();
   const { addNote } = useNotes();
+  const { show: toast } = useToast();
+  const haptics = useHaptics();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const drawTopPadding = Math.max(insets.top, spacing.lg) + spacing.sm;
+  const drawBottomPadding = Math.max(insets.bottom, spacing.md);
 
   const [photo, setPhoto] = useState(null);
   const [title, setTitle] = useState("");
-  const [showDrawing, setShowDrawing] = useState(false);
   const [paths, setPaths] = useState([]);
-  const [currentPath, setCurrentPath] = useState("");
+  const [showDrawing, setShowDrawing] = useState(false);
 
   const handleSave = async () => {
     if (!title.trim()) {
-      Alert.alert("تنبيه", "الرجاء كتابة عنوان للملاحظة");
+      haptics.error();
+      Alert.alert("Title required", "Please add a title for the note.");
       return;
     }
-
     await addNote({ title, photo, drawing: paths });
-
-    setTitle("");
-    setPhoto(null);
-    setPaths([]);
-
+    haptics.success();
+    toast({ type: "success", message: "Note saved" });
     router.replace("/note");
   };
-
-  const getDate = () => {
-    const now = new Date();
-    return (
-      now
-        .toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })
-        .toUpperCase() +
-      " • " +
-      now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
-    );
-  };
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: (e) => {
-        const { locationX, locationY } = e.nativeEvent;
-        setCurrentPath(`M${locationX},${locationY}`);
-      },
-      onPanResponderMove: (e) => {
-        const { locationX, locationY } = e.nativeEvent;
-        setCurrentPath((prev) => `${prev} L${locationX},${locationY}`);
-      },
-      onPanResponderRelease: () => {
-        setCurrentPath((latest) => {
-          if (latest) setPaths((prev) => [...prev, latest]);
-          return "";
-        });
-      },
-    })
-  ).current;
-
-  const clearDrawing = () => setPaths([]);
 
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("إذن مطلوب", "يجب منح إذن الكاميرا");
+      Alert.alert("Permission required", "Camera access is needed to attach a photo.");
       return;
     }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      quality: 1,
-    });
-
+    const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, quality: 1 });
     if (!result.canceled) {
       setPhoto(result.assets[0].uri);
+      haptics.light();
+    }
+  };
+
+  const pickFromLibrary = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission required", "Library access is needed.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, quality: 1 });
+    if (!result.canceled) {
+      setPhoto(result.assets[0].uri);
+      haptics.light();
     }
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={["bottom"]}>
+      <Header
+        title="New Note"
+        showBack
+        right={
+          <Pressable onPress={handleSave} hitSlop={20} style={styles.saveBtn}>
+            <Text style={[styles.save, { color: theme.primary, fontFamily: typography.family.semibold }]}>
+              Save
+            </Text>
+          </Pressable>
+        }
+      />
 
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-        <TouchableOpacity onPress={() => router.replace("/note")}>
-          <Text style={[styles.backArrow, { color: theme.primary }]}>{"<"}</Text>
-        </TouchableOpacity>
-
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Create New Note</Text>
-
-        <TouchableOpacity style={[styles.saveBtn, { backgroundColor: theme.primary }]} onPress={handleSave}>
-          <Text style={styles.saveBtnText}>Save</Text>
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.container}>
-        
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <TextInput
-          style={[styles.titleInput, { color: theme.text }]}
+          style={[styles.titleInput, { color: theme.text, fontFamily: typography.family.bold }]}
           placeholder="Title"
-          placeholderTextColor={theme.textSecondary}
+          placeholderTextColor={theme.textMuted}
           value={title}
           onChangeText={setTitle}
         />
-
-        <Text style={[styles.meta, { color: theme.textSecondary }]}>{getDate()}</Text>
+        <Text style={[styles.meta, { color: theme.textSecondary }]}>{formatDate(new Date().toISOString())}</Text>
 
         {photo && (
-          <View style={styles.photoContainer}>
+          <View style={styles.photoBox}>
             <Image source={{ uri: photo }} style={styles.photo} />
-            <TouchableOpacity
-              style={[styles.retakeButton, { backgroundColor: theme.surface }]}
-              onPress={() => setPhoto(null)}
-            >
-              <Text style={[styles.retakeText, { color: theme.primary }]}>Retake Photo</Text>
-            </TouchableOpacity>
+            <Button title="Remove Photo" variant="ghost" size="sm" onPress={() => setPhoto(null)} />
           </View>
         )}
 
         {paths.length > 0 && (
-          <View style={styles.drawingPreview}>
-            <Svg style={styles.svgPreview}>
+          <View style={[styles.drawingPreview, { backgroundColor: theme.surfaceMuted }]}>
+            <Svg style={StyleSheet.absoluteFill}>
               {paths.map((p, i) => (
-                <Path
-                  key={i}
-                  d={p}
-                  stroke={theme.primary}
-                  strokeWidth={3}
-                  fill="none"
-                  strokeLinecap="round"
-                />
+                <Path key={i} d={p} stroke={theme.primary} strokeWidth={3} fill="none" strokeLinecap="round" />
               ))}
             </Svg>
-
-            <TouchableOpacity style={styles.clearBtn} onPress={clearDrawing}>
-              <Text style={[styles.clearText, { color: theme.danger }]}>🗑 Clear Drawing</Text>
-            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
 
-      <View style={[styles.bottomBar, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
-        <TouchableOpacity style={styles.addPhotoBtn} onPress={takePhoto}>
-          <Text style={styles.addPhotoIcon}>📷</Text>
-          <Text style={[styles.addPhotoText, { color: theme.primary }]}>Add Photo</Text>
-        </TouchableOpacity>
-
-        <View style={styles.bottomRight}>
-          <TouchableOpacity style={styles.iconBtn}>
-            <Text style={[styles.iconText, { color: theme.primary }]}>≡</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.iconBtn} onPress={() => setShowDrawing(true)}>
-            <Text style={[styles.iconText, { color: theme.primary }]}>✏️</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={[styles.bar, { backgroundColor: theme.card, borderTopColor: theme.border }]}>
+        <Pressable style={styles.barBtn} onPress={takePhoto} hitSlop={6}>
+          <Ionicons name="camera-outline" size={22} color={theme.primary} />
+          <Text style={[styles.barText, { color: theme.primary }]}>Camera</Text>
+        </Pressable>
+        <Pressable style={styles.barBtn} onPress={pickFromLibrary} hitSlop={6}>
+          <Ionicons name="images-outline" size={22} color={theme.primary} />
+          <Text style={[styles.barText, { color: theme.primary }]}>Library</Text>
+        </Pressable>
+        <Pressable style={styles.barBtn} onPress={() => setShowDrawing(true)} hitSlop={6}>
+          <Ionicons name="brush-outline" size={22} color={theme.primary} />
+          <Text style={[styles.barText, { color: theme.primary }]}>Draw</Text>
+        </Pressable>
       </View>
 
-      <Modal visible={showDrawing} animationType="slide">
-        <SafeAreaView style={[styles.drawingModal, { backgroundColor: theme.background }]}>
-
-          <View style={[styles.drawingHeader, { borderBottomColor: theme.border }]}>
-            <Text style={[styles.drawingTitle, { color: theme.text }]}>✏️ Draw</Text>
-
-            <View style={styles.drawingActions}>
-              <TouchableOpacity style={styles.clearDrawBtn} onPress={clearDrawing}>
-                <Text style={[styles.clearDrawText, { color: theme.danger }]}>Clear</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={[styles.doneBtn, { backgroundColor: theme.primary }]} onPress={() => setShowDrawing(false)}>
-                <Text style={styles.doneBtnText}>Done</Text>
-              </TouchableOpacity>
-            </View>
+      <Modal visible={showDrawing} animationType="slide" onRequestClose={() => setShowDrawing(false)}>
+        <View style={[styles.modalSafe, { backgroundColor: theme.background, paddingBottom: drawBottomPadding }]}>
+          <View
+            style={[
+              styles.modalHeader,
+              { borderBottomColor: theme.border, paddingTop: drawTopPadding },
+            ]}
+          >
+            <Pressable onPress={() => setPaths([])} hitSlop={20} style={styles.modalActionBtn}>
+              <Text style={[styles.modalAction, { color: theme.danger }]}>Clear</Text>
+            </Pressable>
+            <Text style={[styles.modalTitle, { color: theme.text, fontFamily: typography.family.bold }]}>Draw</Text>
+            <Pressable onPress={() => setShowDrawing(false)} hitSlop={20} style={styles.modalActionBtn}>
+              <Text style={[styles.modalAction, { color: theme.primary }]}>Done</Text>
+            </Pressable>
           </View>
-
-          <View style={styles.canvas} {...panResponder.panHandlers}>
-            <Svg style={StyleSheet.absoluteFill}>
-              {paths.map((p, i) => (
-                <Path
-                  key={i}
-                  d={p}
-                  stroke={theme.primary}
-                  strokeWidth={3}
-                  fill="none"
-                  strokeLinecap="round"
-                />
-              ))}
-
-              {currentPath ? (
-                <Path
-                  d={currentPath}
-                  stroke={theme.primary}
-                  strokeWidth={3}
-                  fill="none"
-                  strokeLinecap="round"
-                />
-              ) : null}
-            </Svg>
+          <View style={[styles.canvasWrap, { backgroundColor: theme.surface }]}>
+            <DrawingCanvas paths={paths} onChange={setPaths} color={theme.primary} />
           </View>
-
-          <Text style={[styles.canvasHint, { color: theme.textSecondary }]}>ارسم بإصبعك هنا 👆</Text>
-        </SafeAreaView>
+        </View>
       </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-  },
-  backArrow: { fontSize: 20, fontWeight: "bold" },
-  headerTitle: { fontSize: 17, fontWeight: "700" },
-  saveBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 18,
-    borderRadius: 20,
-  },
-  saveBtnText: { color: "#FFF", fontWeight: "700", fontSize: 14 },
-  container: { flexGrow: 1, paddingHorizontal: 22, paddingTop: 25, paddingBottom: 20 },
-  titleInput: { fontSize: 28, fontWeight: "700", marginBottom: 8 },
-  meta: { fontSize: 12, marginBottom: 25 },
-  photoContainer: { alignItems: "center", gap: 15, marginTop: 10 },
-  photo: { width: "100%", height: 320, borderRadius: 18, resizeMode: "cover" },
-  retakeButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 35,
-    borderRadius: 20,
-  },
-  retakeText: { fontWeight: "600", fontSize: 15 },
-  drawingPreview: { marginTop: 20, alignItems: "center" },
-  svgPreview: { width: "100%", height: 200, borderRadius: 16 },
-  clearBtn: { marginTop: 10 },
-  clearText: { fontWeight: "600" },
-  bottomBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-  },
-  addPhotoBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-    paddingVertical: 8,
-    paddingHorizontal: 18,
-    borderRadius: 20,
-    gap: 8,
-    elevation: 2,
-  },
-  addPhotoIcon: { fontSize: 16 },
-  addPhotoText: { fontWeight: "600", fontSize: 14 },
-  bottomRight: { flexDirection: "row", gap: 10 },
-  iconBtn: {
-    backgroundColor: "#FFF",
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 2,
-  },
-  iconText: { fontSize: 16 },
-  drawingModal: { flex: 1 },
-  drawingHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-  },
-  drawingTitle: { fontSize: 18, fontWeight: "700" },
-  drawingActions: { flexDirection: "row", gap: 10 },
-  clearDrawBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 15,
-    borderRadius: 20,
-    backgroundColor: "#FFE8E8",
-  },
-  clearDrawText: { fontWeight: "600" },
-  doneBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 18,
-    borderRadius: 20,
-  },
-  doneBtnText: { color: "#FFF", fontWeight: "700" },
-  canvas: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    margin: 15,
-    borderRadius: 20,
-    overflow: "hidden",
-    elevation: 3,
-  },
-  canvasHint: { textAlign: "center", paddingBottom: 15, fontSize: 13 },
+  safe: { flex: 1 },
+  content: { padding: spacing.lg, paddingBottom: spacing["3xl"] },
+  saveBtn: { paddingVertical: 4, paddingHorizontal: 6 },
+  save: { fontSize: typography.size.base },
+  titleInput: { fontSize: typography.size["2xl"], paddingVertical: spacing.sm },
+  meta: { fontSize: typography.size.xs, marginBottom: spacing.lg },
+  photoBox: { gap: spacing.sm, marginBottom: spacing.lg, alignItems: "center" },
+  photo: { width: "100%", height: 280, borderRadius: radius.lg },
+  drawingPreview: { width: "100%", height: 200, borderRadius: radius.lg, overflow: "hidden", marginBottom: spacing.lg },
+  bar: { flexDirection: "row", justifyContent: "space-around", paddingVertical: spacing.md, borderTopWidth: StyleSheet.hairlineWidth },
+  barBtn: { alignItems: "center", gap: 2 },
+  barText: { fontSize: typography.size.xs, fontWeight: "600" },
+  modalSafe: { flex: 1 },
+  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: spacing.lg, paddingBottom: spacing.md, borderBottomWidth: StyleSheet.hairlineWidth, minHeight: 56 },
+  modalActionBtn: { paddingVertical: 8, paddingHorizontal: 12, minWidth: 60 },
+  modalTitle: { fontSize: typography.size.lg },
+  modalAction: { fontSize: typography.size.base, fontWeight: "600" },
+  canvasWrap: { flex: 1, margin: spacing.lg, borderRadius: radius.lg, overflow: "hidden" },
 });

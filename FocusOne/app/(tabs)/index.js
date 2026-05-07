@@ -1,98 +1,144 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
+import { useEffect, useState } from "react";
+import { View, Text, StyleSheet } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import { useRouter } from "expo-router";
 import { useTheme } from "../../src/contexts/ThemeContext";
 import { useAuth } from "../../src/contexts/AuthContext";
 import { useGoals } from "../../src/contexts/GoalsContext";
+import { useSessions } from "../../src/contexts/SessionsContext";
 import { useSettings } from "../../src/contexts/SettingsContext";
-import { useRouter } from "expo-router";
+import { fetchQuote } from "../../src/services/quotes";
+import { greeting } from "../../src/utils/format";
+import Header from "../../src/components/ui/Header";
+import Card from "../../src/components/ui/Card";
+import Button from "../../src/components/ui/Button";
+import ProgressBar from "../../src/components/ui/ProgressBar";
+import EmptyState from "../../src/components/ui/EmptyState";
+import { typography, spacing, radius } from "../../src/theme";
 
 export default function Home() {
   const { theme } = useTheme();
   const { user } = useAuth();
   const { goals, computeProgress } = useGoals();
+  const { currentStreak } = useSessions();
   const { settings } = useSettings();
   const router = useRouter();
+  const [quote, setQuote] = useState("");
 
-  const displayName = user?.name || user?.email?.split("@")[0] || "Guest";
+  useEffect(() => {
+    let cancelled = false;
+    fetchQuote().then((q) => {
+      if (!cancelled) setQuote(q);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  const currentGoal = goals[0] || { title: "No Goal Yet", tasks: [] };
-  const progress = goals.length > 0 ? computeProgress(currentGoal) : 0;
-  const firstTask = currentGoal?.tasks?.[0];
-  const incompleteTasks = currentGoal?.tasks?.filter((t) => !t.completed).length || 0;
-  const focusDuration = firstTask?.duration || settings.defaultDuration;
+  const displayName = user?.name || user?.email?.split("@")[0] || "there";
+  const streakBadge = currentStreak > 0 ? `🔥 ${currentStreak}` : "";
+
+  if (goals.length === 0) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <Header
+          title=""
+          right={streakBadge ? <Text style={[styles.streak, { color: theme.warning }]}>{streakBadge}</Text> : null}
+        />
+        <EmptyState
+          icon="flag-outline"
+          title={`${greeting()}, ${displayName} 👋`}
+          subtitle="Create your first goal to start focusing on what matters today."
+          ctaLabel="Create Goal"
+          onCta={() => router.push("/goal/new")}
+        />
+      </View>
+    );
+  }
+
+  const currentGoal = goals[0];
+  const progress = computeProgress(currentGoal);
+  const incompleteTasks = currentGoal.tasks?.filter((t) => !t.completed) || [];
+  const currentTask = incompleteTasks[0] || currentGoal.tasks?.[0];
+  const focusDuration = currentTask?.duration || settings.defaultDuration;
+
+  const startFocus = () => {
+    const taskId = currentTask?.id || "quick";
+    router.push({ pathname: "/focus/[taskId]", params: { taskId, duration: String(focusDuration) } });
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.headerSection}>
-          <Text style={[styles.greeting, { color: theme.text }]}>Hi, {displayName} 👋</Text>
-          <Text style={[styles.subGreeting, { color: theme.textSecondary }]}>Focus on one thing today</Text>
-        </View>
+      <Header
+        title=""
+        right={streakBadge ? <Text style={[styles.streak, { color: theme.warning }]}>{streakBadge}</Text> : null}
+      />
 
-        <View style={[styles.progressCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <View style={styles.goalHeader}>
-            <View style={styles.dot} />
-            <Text style={[styles.goalTitle, { color: theme.text }]}>{currentGoal.title || "No Goal"}</Text>
-          </View>
-          <View style={styles.progressTextRow}>
-            <Text style={{ color: theme.textSecondary }}>Progress</Text>
-            <Text style={{ color: theme.primary, fontWeight: "bold" }}>{progress}%</Text>
-          </View>
-          <View style={[styles.progressBarBackground, { backgroundColor: theme.surface }]}>
-            <View style={[styles.progressBarFill, { backgroundColor: theme.primary, width: `${progress}%` }]} />
-          </View>
-        </View>
-
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Current Task</Text>
-
-        <View style={[styles.taskCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <Text style={[styles.taskName, { color: theme.text }]}>
-            {firstTask?.title || "No Tasks"}
+      <Animated.ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Animated.View entering={FadeInDown.duration(400).delay(0)}>
+          <Text style={[styles.greeting, { color: theme.text, fontFamily: typography.family.bold }]}>
+            {greeting()}, {displayName} 👋
           </Text>
-          <Text style={[styles.taskDesc, { color: theme.textSecondary }]}>
-            {incompleteTasks} tasks remaining • {focusDuration} min focus session
-          </Text>
-          <TouchableOpacity
-            style={[styles.startBtn, { backgroundColor: theme.primary }]}
-            onPress={() => router.push(`/focus/${firstTask?.id || "quick"}`)}
-          >
-            <Text style={styles.btnText}>Start Focus</Text>
-          </TouchableOpacity>
-        </View>
+          <Text style={[styles.sub, { color: theme.textSecondary }]}>Focus on one thing today.</Text>
+        </Animated.View>
 
-        <View style={[styles.quoteCard, { backgroundColor: "#E3F2FD" }]}>
-          <Text style={styles.quoteText}>💡 "The secret of getting ahead is getting started."</Text>
-        </View>
-      </ScrollView>
+        <Animated.View entering={FadeInDown.duration(400).delay(100)}>
+          <Card variant="elevated" padding="lg" style={styles.card}>
+            <View style={styles.cardHeader}>
+              <View style={[styles.dot, { backgroundColor: theme.primary }]} />
+              <Text style={[styles.cardTitle, { color: theme.text, fontFamily: typography.family.semibold }]} numberOfLines={1}>
+                {currentGoal.title}
+              </Text>
+            </View>
+            <View style={styles.progressRow}>
+              <Text style={{ color: theme.textSecondary, fontSize: typography.size.sm }}>Progress</Text>
+              <Text style={{ color: theme.primary, fontFamily: typography.family.bold, fontSize: typography.size.sm }}>
+                {progress}%
+              </Text>
+            </View>
+            <ProgressBar progress={progress} />
+          </Card>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.duration(400).delay(200)}>
+          <Card variant="elevated" padding="lg" style={styles.card}>
+            <Text style={[styles.taskName, { color: theme.text, fontFamily: typography.family.bold }]}>
+              {currentTask?.title || "No tasks"}
+            </Text>
+            <Text style={[styles.taskMeta, { color: theme.textSecondary }]}>
+              {incompleteTasks.length} {incompleteTasks.length === 1 ? "task" : "tasks"} remaining • {focusDuration} min focus
+            </Text>
+            <Button title="Start Focus" size="lg" onPress={startFocus} style={{ width: "100%" }} />
+          </Card>
+        </Animated.View>
+
+        {!!quote && (
+          <Animated.View entering={FadeInDown.duration(400).delay(300)}>
+            <View style={[styles.quoteCard, { backgroundColor: theme.primarySoft }]}>
+              <Text style={[styles.quoteText, { color: theme.primaryDark, fontFamily: typography.family.medium }]}>
+                💡  &ldquo;{quote}&rdquo;
+              </Text>
+            </View>
+          </Animated.View>
+        )}
+      </Animated.ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { padding: 20, paddingBottom: 100 },
-  headerSection: { marginBottom: 24 },
-  greeting: { fontSize: 24, fontWeight: "bold" },
-  subGreeting: { fontSize: 14, marginTop: 4 },
-  progressCard: { padding: 16, borderWidth: 1, borderRadius: 12, marginBottom: 24 },
-  goalHeader: { flexDirection: "row", alignItems: "center", marginBottom: 15 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#FF5252", marginRight: 8 },
-  goalTitle: { fontSize: 16, fontWeight: "600" },
-  progressTextRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
-  progressBarBackground: { height: 8, borderRadius: 4, overflow: "hidden" },
-  progressBarFill: { height: "100%" },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 12 },
-  taskCard: { padding: 20, alignItems: "center", borderWidth: 1, borderRadius: 12, marginBottom: 24 },
-  taskName: { fontSize: 20, fontWeight: "bold" },
-  taskDesc: { fontSize: 14, marginBottom: 20 },
-  startBtn: { width: "100%", padding: 15, alignItems: "center", borderRadius: 8 },
-  btnText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
-  quoteCard: { padding: 16, borderRadius: 12 },
-  quoteText: { fontStyle: "italic", color: "#1976D2", textAlign: "center", fontSize: 13 },
+  content: { padding: spacing.lg, paddingBottom: 120, gap: spacing.md },
+  streak: { fontSize: typography.size.base, fontWeight: "700" },
+  greeting: { fontSize: typography.size["2xl"] },
+  sub: { fontSize: typography.size.sm, marginTop: spacing.xs, marginBottom: spacing.md },
+  card: { gap: spacing.md },
+  cardHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  dot: { width: 10, height: 10, borderRadius: 5 },
+  cardTitle: { flex: 1, fontSize: typography.size.base },
+  progressRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  taskName: { fontSize: typography.size.xl, marginBottom: spacing.xs },
+  taskMeta: { fontSize: typography.size.sm, marginBottom: spacing.lg },
+  quoteCard: { padding: spacing.lg, borderRadius: radius.lg },
+  quoteText: { fontSize: typography.size.sm, fontStyle: "italic", lineHeight: 22, textAlign: "center" },
 });

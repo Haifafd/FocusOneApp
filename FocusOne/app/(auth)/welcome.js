@@ -1,167 +1,68 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  StatusBar,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "../../src/contexts/ThemeContext";
+import { useHaptics } from "../../src/hooks/useHaptics";
+import Button from "../../src/components/ui/Button";
+import ProgressRing from "../../src/components/ui/ProgressRing";
+import { typography, spacing } from "../../src/theme";
 
 export default function Welcome() {
+  const { theme } = useTheme();
   const router = useRouter();
+  const haptics = useHaptics();
 
-  const handleStart = () => {
-    // عند الضغط على زر Start يروح لشاشة تسجيل الدخول
+  const goRegister = () => {
+    haptics.selection();
+    router.push("/(auth)/register");
+  };
+  const goLogin = () => {
+    haptics.selection();
     router.push("/(auth)/login");
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-
-      {/* اللوقو */}
-      <View style={styles.logoContainer}>
-        <View style={styles.calendarBox}>
-          <View style={styles.topPinsContainer}>
-            <View style={styles.pin} />
-            <View style={styles.pin} />
-          </View>
-
-          <View style={styles.calendarGrid}>
-            {[...Array(12)].map((_, index) => (
-              <View key={index} style={styles.square} />
-            ))}
-          </View>
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={["top", "bottom"]}>
+      <View style={styles.content}>
+        <View style={styles.brand}>
+          <ProgressRing
+            progress={100}
+            size={180}
+            strokeWidth={14}
+            label="F"
+            sublabel="FocusOne"
+          />
         </View>
 
-        {/* علامة الصح */}
-        <View style={styles.checkCircle}>
-          <Ionicons name="checkmark" size={24} color="#FFFFFF" />
+        <View style={styles.heading}>
+          <Text style={[styles.title, { color: theme.text, fontFamily: typography.family.extrabold }]}>
+            One goal at a time.
+          </Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+            Cut the noise. Focus on what matters today.
+          </Text>
         </View>
       </View>
 
-      {/* النص */}
-      <Text style={styles.title}>FOCUS ONE</Text>
-      <Text style={styles.subtitle}>ACHIEVE MORE</Text>
-
-      {/* زر البداية */}
-      <TouchableOpacity 
-        style={styles.startButton} 
-        onPress={handleStart}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.startText}>Start</Text>
-      </TouchableOpacity>
-    </View>
+      <View style={styles.actions}>
+        <Button title="Get Started" size="lg" onPress={goRegister} />
+        <Button
+          title="I already have an account"
+          variant="ghost"
+          onPress={goLogin}
+          style={{ marginTop: spacing.sm }}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  logoContainer: {
-    position: "relative",
-    marginBottom: 15,
-  },
-
-  calendarBox: {
-    width: 90,
-    height: 90,
-    borderWidth: 4,
-    borderColor: "#1E5DB8",
-    borderRadius: 10,
-    paddingTop: 15,
-    alignItems: "center",
-    backgroundColor: "#fff",
-  },
-
-  topPinsContainer: {
-    position: "absolute",
-    top: -10,
-    width: "70%",
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-
-  pin: {
-    width: 8,
-    height: 18,
-    borderRadius: 4,
-    backgroundColor: "#1E5DB8",
-  },
-
-  calendarGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    width: 60,
-    justifyContent: "space-between",
-    marginTop: 8,
-  },
-
-  square: {
-    width: 14,
-    height: 14,
-    backgroundColor: "#5DA9FF",
-    marginBottom: 4,
-    borderRadius: 2,
-  },
-
-  checkCircle: {
-    position: "absolute",
-    right: -15,
-    bottom: -10,
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: "#1E5DB8",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 3,
-    borderColor: "#FFFFFF",
-  },
-
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#1E5DB8",
-    letterSpacing: 2,
-  },
-
-  subtitle: {
-    marginTop: 5,
-    fontSize: 14,
-    color: "#5DA9FF",
-    letterSpacing: 4,
-    fontWeight: "600",
-  },
-
-  startButton: {
-    marginTop: 50,
-    backgroundColor: "#1E5DB8",
-    paddingVertical: 14,
-    paddingHorizontal: 70,
-    borderRadius: 30,
-    shadowColor: "#1E5DB8",
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.9,
-    shadowRadius: 15,
-    elevation: 12,
-  },
-
-  startText: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-    letterSpacing: 1,
-  },
+  safe: { flex: 1 },
+  content: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: spacing.xl, gap: spacing["2xl"] },
+  brand: { alignItems: "center", justifyContent: "center" },
+  heading: { alignItems: "center", gap: spacing.sm },
+  title: { fontSize: typography.size["3xl"], textAlign: "center" },
+  subtitle: { fontSize: typography.size.base, textAlign: "center", maxWidth: 320, lineHeight: 22 },
+  actions: { paddingHorizontal: spacing.xl, paddingBottom: spacing.lg, gap: spacing.sm },
 });

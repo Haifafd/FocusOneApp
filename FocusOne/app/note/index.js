@@ -1,131 +1,83 @@
-import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from "react-native";
+import { useCallback } from "react";
+import { View, Pressable, Alert, StyleSheet } from "react-native";
+import Animated, { LinearTransition } from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useTheme } from "../../src/contexts/ThemeContext";
 import { useNotes } from "../../src/contexts/NotesContext";
-import { useRouter, useFocusEffect } from "expo-router";
-import Svg, { Path } from "react-native-svg";
+import { useToast } from "../../src/contexts/ToastContext";
+import { useHaptics } from "../../src/hooks/useHaptics";
+import Header from "../../src/components/ui/Header";
+import EmptyState from "../../src/components/ui/EmptyState";
+import NoteCard from "../../src/components/notes/NoteCard";
+import { spacing } from "../../src/theme";
 
 export default function Notes() {
   const { theme } = useTheme();
   const router = useRouter();
   const { notes, removeNote, refresh } = useNotes();
+  const { show: toast } = useToast();
+  const haptics = useHaptics();
 
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       refresh();
     }, [refresh])
   );
 
-  const deleteNote = (id) => {
-    Alert.alert("Delete", "Delete this note?", [
-      { text: "Cancel" },
+  const onAdd = () => {
+    haptics.selection();
+    router.push("/note/new");
+  };
+
+  const onDelete = (id) => {
+    haptics.medium();
+    Alert.alert("Delete note", "Delete this note?", [
+      { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
+        style: "destructive",
         onPress: async () => {
           await removeNote(id);
+          toast({ type: "success", message: "Note deleted" });
         },
       },
     ]);
   };
 
-  const formatDate = (iso) => {
-    if (!iso) return "";
-    const d = new Date(iso);
-    return (
-      d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase() +
-      " • " +
-      d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
-    );
-  };
-
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Your Notes</Text>
+      <Header
+        title="Notes"
+        right={
+          <Pressable onPress={onAdd} hitSlop={10}>
+            <Ionicons name="add" size={24} color={theme.primary} />
+          </Pressable>
+        }
+      />
 
-        <TouchableOpacity onPress={() => router.push("/note/new")}>
-          <Text style={[styles.emojiAdd, { color: theme.primary }]}>📝</Text>
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.list}>
-        {notes.length === 0 && (
-          <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-            No notes yet...
-          </Text>
-        )}
-
-        {notes.map((note) => (
-          <View key={note.id} style={[styles.card, { backgroundColor: theme.card }]}>
-            <Text style={[styles.cardTitle, { color: theme.text }]}>{note.title}</Text>
-            <Text style={[styles.date, { color: theme.textSecondary }]}>
-              {formatDate(note.createdAt)}
-            </Text>
-
-            {note.photo && (
-              <Image source={{ uri: note.photo }} style={styles.photo} />
-            )}
-
-            {note.drawing && note.drawing.length > 0 && (
-              <Svg style={styles.drawing}>
-                {note.drawing.map((p, i) => (
-                  <Path
-                    key={i}
-                    d={p}
-                    stroke={theme.primary}
-                    strokeWidth={3}
-                    fill="none"
-                    strokeLinecap="round"
-                  />
-                ))}
-              </Svg>
-            )}
-
-            <TouchableOpacity style={styles.deleteBtn} onPress={() => deleteNote(note.id)}>
-              <Text style={[styles.deleteText, { color: theme.danger }]}>Delete</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-      </ScrollView>
+      {notes.length === 0 ? (
+        <EmptyState
+          icon="document-text-outline"
+          title="No notes yet"
+          subtitle="Capture a thought, photo, or quick sketch."
+          ctaLabel="New Note"
+          onCta={onAdd}
+        />
+      ) : (
+        <Animated.FlatList
+          data={notes}
+          keyExtractor={(n) => n.id}
+          contentContainerStyle={styles.list}
+          itemLayoutAnimation={LinearTransition}
+          renderItem={({ item }) => <NoteCard note={item} onDelete={onDelete} />}
+        />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-
-  header: {
-    padding: 20,
-    paddingTop: 60,
-    borderBottomWidth: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  headerTitle: { fontSize: 26, fontWeight: "700" },
-
-  emojiAdd: { fontSize: 30, paddingHorizontal: 10 },
-
-  list: { padding: 20, paddingBottom: 100 },
-
-  emptyText: { textAlign: "center", marginTop: 40 },
-
-  card: {
-    padding: 15,
-    borderRadius: 16,
-    marginBottom: 20,
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-
-  cardTitle: { fontSize: 20, fontWeight: "700" },
-  date: { fontSize: 12, marginBottom: 10 },
-
-  photo: { width: "100%", height: 220, borderRadius: 14, marginBottom: 10 },
-  drawing: { width: "100%", height: 200, marginBottom: 10 },
-
-  deleteBtn: { marginTop: 10, alignSelf: "flex-end" },
-  deleteText: { fontSize: 14, fontWeight: "600" },
+  list: { padding: spacing.lg, paddingBottom: 120 },
 });

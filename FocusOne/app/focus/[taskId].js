@@ -1,319 +1,196 @@
-import React, { useState, useRef, useEffect } from "react";
-import {
-  SafeAreaView,
-  Text,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
-  StyleSheet,
-  TextInput,
-  Modal,
-  Pressable,
-} from "react-native";
-
-import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useMemo, useState } from "react";
+import { View, Text, Pressable, StyleSheet, Modal, Alert } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../src/contexts/ThemeContext";
+import { useGoals } from "../../src/contexts/GoalsContext";
 import { useSessions } from "../../src/contexts/SessionsContext";
 import { useSettings } from "../../src/contexts/SettingsContext";
+import { useHaptics } from "../../src/hooks/useHaptics";
+import { useTimer } from "../../src/hooks/useTimer";
+import { fetchQuote } from "../../src/services/quotes";
+import Header from "../../src/components/ui/Header";
+import Button from "../../src/components/ui/Button";
+import ProgressRing from "../../src/components/ui/ProgressRing";
+import { typography, spacing, radius } from "../../src/theme";
+
+const DURATION_OPTIONS = [5, 15, 25, 45, 60];
 
 export default function FocusSession() {
   const router = useRouter();
   const { taskId, duration: durationParam } = useLocalSearchParams();
   const { theme } = useTheme();
+  const { goals } = useGoals();
   const { addSession } = useSessions();
   const { settings } = useSettings();
+  const haptics = useHaptics();
 
-  const initialDuration = durationParam ? String(durationParam) : String(settings.defaultDuration);
-  const task = { title: "Focus Task", duration: Number(initialDuration), id: taskId };
-
+  const initialDuration = Number(durationParam) || settings.defaultDuration;
   const [duration, setDuration] = useState(initialDuration);
-  const total = Number(duration || 1) * 60;
-
-  const [secondsLeft, setSecondsLeft] = useState(total);
-  const [running, setRunning] = useState(false);
-  const intervalRef = useRef(null);
-
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [quote, setQuote] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
 
-  // مودال تغيير الوقت
-  const [showModal, setShowModal] = useState(false);
-  const [tempMinutes, setTempMinutes] = useState(duration);
-
-  // جلب اقتباس
-  const fetchQuote = async () => {
-    try {
-      setLoading(true);
-      setError(false);
-
-      const response = await fetch(
-        `https://api.adviceslip.com/advice?timestamp=${Date.now()}`
-      );
-
-      if (!response.ok) throw new Error("Failed to fetch quote");
-
-      const data = await response.json();
-      setQuote(data.slip?.advice || "Keep focusing, you are doing great!");
-    } catch (err) {
-      setError(true);
-      setQuote("Keep focusing, you are doing great!");
-    } finally {
-      setLoading(false);
+  const task = useMemo(() => {
+    if (taskId === "quick" || !taskId) {
+      return { id: null, title: "Quick Focus", goalId: null };
     }
+    for (const g of goals) {
+      const t = g.tasks?.find((tt) => tt.id === taskId);
+      if (t) return { ...t, goalId: g.id };
+    }
+    return { id: taskId, title: "Focus Session", goalId: null };
+  }, [goals, taskId]);
+
+  const onComplete = async () => {
+    haptics.success();
+    await addSession({
+      taskId: task.id,
+      goalId: task.goalId,
+      durationMinutes: duration,
+    });
+    router.replace({ pathname: "/focus/complete", params: { duration: String(duration) } });
   };
 
+  const timer = useTimer({ totalSeconds: duration * 60, onComplete });
+
   useEffect(() => {
-    fetchQuote();
-    return () => clearInterval(intervalRef.current);
+    fetchQuote().then(setQuote);
   }, []);
 
-  useEffect(() => {
-    setSecondsLeft(total);
-    setRunning(false);
-    clearInterval(intervalRef.current);
-  }, [duration]);
-
-  const toggleTimer = () => {
-    if (running) {
-      clearInterval(intervalRef.current);
-      setRunning(false);
-      return;
+  const onPrimary = () => {
+    if (timer.isRunning) {
+      timer.pause();
+      haptics.light();
+    } else if (timer.isPaused) {
+      timer.resume();
+      haptics.light();
+    } else {
+      timer.start();
+      haptics.light();
     }
-
-    setRunning(true);
-
-    intervalRef.current = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(intervalRef.current);
-          setRunning(false);
-          (async () => {
-            await addSession({
-              taskId: taskId === "quick" ? null : taskId,
-              goalId: null,
-              durationMinutes: Number(duration),
-            });
-            router.replace({ pathname: "/focus/complete", params: { duration: String(duration) } });
-          })();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
   };
 
-  const minutes = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
-  const seconds = String(secondsLeft % 60).padStart(2, "0");
+  const onStop = () => {
+    if (!timer.isRunning && !timer.isPaused) {
+      router.back();
+      return;
+    }
+    Alert.alert("Stop session?", "Your progress for this session will be lost.", [
+      { text: "Keep going", style: "cancel" },
+      {
+        text: "Stop",
+        style: "destructive",
+        onPress: () => {
+          timer.stop();
+          router.back();
+        },
+      },
+    ]);
+  };
+
+  const onBack = () => {
+    if (timer.isRunning) {
+      onStop();
+    } else {
+      router.back();
+    }
+  };
+
+  const setDurationAndReset = (mins) => {
+    setDuration(mins);
+    setPickerOpen(false);
+    haptics.selection();
+  };
+
+  const primaryLabel = timer.isRunning ? "Pause" : timer.isPaused ? "Resume" : "Start";
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-
-      {/* رجوع */}
-      <View style={styles.top}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={28} color={theme.text} />
-        </TouchableOpacity>
-      </View>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Header
+        title=""
+        right={
+          <Pressable onPress={onBack} hitSlop={10}>
+            <Text style={[styles.cancelText, { color: theme.textSecondary, fontFamily: typography.family.medium }]}>
+              Cancel
+            </Text>
+          </Pressable>
+        }
+      />
 
       <View style={styles.content}>
-        <Text style={[styles.smallLabel, { color: theme.textSecondary }]}>
+        <Text style={[styles.label, { color: theme.textSecondary, fontFamily: typography.family.semibold }]}>
           FOCUS SESSION
         </Text>
-
-        <Text style={[styles.title, { color: theme.text }]}>
+        <Text style={[styles.title, { color: theme.text, fontFamily: typography.family.bold }]}>
           {task.title}
         </Text>
 
-        {/* التايمر */}
-        <TouchableOpacity
-          onPress={() => setShowModal(true)}
-          style={[styles.timerOuter, { backgroundColor: theme.surface }]}
-        >
-          <Text style={[styles.timerText, { color: theme.text }]}>
-            {minutes}:{seconds}
-          </Text>
-          <Text style={{ color: theme.textSecondary }}>Tap to set time</Text>
-        </TouchableOpacity>
+        <Pressable onPress={() => !timer.isRunning && setPickerOpen(true)} style={styles.ringWrap}>
+          <ProgressRing
+            progress={timer.progress}
+            size={260}
+            strokeWidth={12}
+            label={`${timer.minutes}:${timer.seconds}`}
+            sublabel={timer.isRunning || timer.isPaused ? "" : "Tap to set time"}
+          />
+        </Pressable>
 
-        {/* الاقتباس */}
-        {loading ? (
-          <ActivityIndicator size="small" color={theme.primary} />
-        ) : (
-          <Text style={[styles.quote, { color: theme.textSecondary }]}>
-            "{quote}"
+        {!!quote && (
+          <Text style={[styles.quote, { color: theme.textSecondary }]} numberOfLines={3}>
+            &ldquo;{quote}&rdquo;
           </Text>
         )}
 
-        {error && (
-          <Text style={{ color: "red", marginTop: 8 }}>
-            Error loading quote
-          </Text>
-        )}
-
-        <TouchableOpacity
-          onPress={fetchQuote}
-          style={[styles.quoteButton, { backgroundColor: theme.primary }]}
-        >
-          <Text style={styles.quoteButtonText}>Get New Quote</Text>
-        </TouchableOpacity>
-
-        {/* زر تشغيل */}
-        <TouchableOpacity
-          onPress={toggleTimer}
-          style={[styles.mainBtn, { backgroundColor: theme.primary }]}
-        >
-          <Text style={styles.mainBtnText}>
-            {running ? "Pause" : "Start"}
-          </Text>
-        </TouchableOpacity>
-
-        {/* إيقاف */}
-        <TouchableOpacity onPress={() => router.replace("/(tabs)")}>
-          <Text style={[styles.stopText, { color: theme.text }]}>
-            Stop
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.actions}>
+          <Button title={primaryLabel} size="lg" onPress={onPrimary} style={{ minWidth: 200 }} />
+          {(timer.isRunning || timer.isPaused) && (
+            <Button title="Stop" variant="ghost" onPress={onStop} />
+          )}
+        </View>
       </View>
 
-      {/* مودال تغيير الوقت */}
-      <Modal transparent visible={showModal} animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalBox, { backgroundColor: theme.surface }]}>
-            <Text style={{ color: theme.text, fontSize: 18, marginBottom: 10 }}>
-              Set Focus Minutes
+      <Modal visible={pickerOpen} transparent animationType="fade" onRequestClose={() => setPickerOpen(false)}>
+        <Pressable style={styles.backdrop} onPress={() => setPickerOpen(false)}>
+          <View style={[styles.sheet, { backgroundColor: theme.card }]}>
+            <Text style={[styles.sheetTitle, { color: theme.text, fontFamily: typography.family.bold }]}>
+              Set Focus Duration
             </Text>
-
-            <TextInput
-              value={tempMinutes}
-              onChangeText={setTempMinutes}
-              keyboardType="numeric"
-              style={[
-                styles.modalInput,
-                { borderColor: theme.primary, color: theme.text },
-              ]}
-            />
-
-            <View style={{ flexDirection: "row", gap: 10, marginTop: 20 }}>
+            {DURATION_OPTIONS.map((mins) => (
               <Pressable
-                onPress={() => setShowModal(false)}
-                style={[styles.modalBtn, { backgroundColor: "#aaa" }]}
+                key={mins}
+                onPress={() => setDurationAndReset(mins)}
+                style={({ pressed }) => [
+                  styles.option,
+                  { borderBottomColor: theme.border },
+                  pressed && { backgroundColor: theme.surfaceMuted },
+                ]}
               >
-                <Text style={{ color: "#fff" }}>Cancel</Text>
+                <Text style={[styles.optionText, { color: mins === duration ? theme.primary : theme.text }]}>
+                  {mins} min
+                </Text>
+                {mins === duration && (
+                  <Text style={{ color: theme.primary, fontFamily: typography.family.bold }}>✓</Text>
+                )}
               </Pressable>
-
-              <Pressable
-                onPress={() => {
-                  setDuration(tempMinutes);
-                  setShowModal(false);
-                }}
-                style={[styles.modalBtn, { backgroundColor: theme.primary }]}
-              >
-                <Text style={{ color: "#fff" }}>Save</Text>
-              </Pressable>
-            </View>
+            ))}
           </View>
-        </View>
+        </Pressable>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  top: { padding: 16 },
-
-  themeRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 10,
-    marginBottom: 10,
-  },
-
-  themeBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-  },
-
-  content: { flex: 1, alignItems: "center", paddingHorizontal: 24 },
-
-  smallLabel: { fontSize: 14 },
-  title: { fontSize: 24, fontWeight: "700", marginTop: 4 },
-
-  timerOuter: {
-    marginTop: 30,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  timerText: { fontSize: 44, fontWeight: "700" },
-
-  quote: {
-    marginTop: 20,
-    textAlign: "center",
-    fontStyle: "italic",
-    paddingHorizontal: 20,
-  },
-
-  quoteButton: {
-    marginTop: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-  },
-
-  quoteButtonText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-
-  mainBtn: {
-    marginTop: 20,
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 30,
-  },
-
-  mainBtnText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-
-  stopText: { marginTop: 15, fontSize: 18 },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  modalBox: {
-    width: 250,
-    padding: 20,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-
-  modalInput: {
-    borderWidth: 1,
-    width: 80,
-    textAlign: "center",
-    padding: 6,
-    borderRadius: 6,
-    fontSize: 18,
-  },
-
-  modalBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
+  content: { flex: 1, alignItems: "center", paddingHorizontal: spacing.xl, paddingTop: spacing.lg, gap: spacing.lg },
+  cancelText: { fontSize: typography.size.sm },
+  label: { fontSize: typography.size.xs, letterSpacing: 1.5 },
+  title: { fontSize: typography.size["2xl"], textAlign: "center" },
+  ringWrap: { marginTop: spacing.lg },
+  quote: { fontSize: typography.size.sm, fontStyle: "italic", textAlign: "center", paddingHorizontal: spacing.md, lineHeight: 22 },
+  actions: { alignItems: "center", gap: spacing.sm, marginTop: "auto", paddingBottom: spacing.xl },
+  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
+  sheet: { borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: spacing.lg, paddingBottom: spacing["2xl"] },
+  sheetTitle: { fontSize: typography.size.lg, marginBottom: spacing.md, textAlign: "center" },
+  option: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: spacing.md, paddingHorizontal: spacing.lg, borderBottomWidth: StyleSheet.hairlineWidth },
+  optionText: { fontSize: typography.size.base },
 });

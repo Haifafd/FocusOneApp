@@ -23,7 +23,7 @@ export const storage = {
     try {
       await AsyncStorage.removeItem(key);
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   },
@@ -31,7 +31,7 @@ export const storage = {
     try {
       await AsyncStorage.clear();
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   },

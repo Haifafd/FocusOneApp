@@ -1,77 +1,65 @@
-import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
+import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { useTheme } from "../../src/contexts/ThemeContext";
 import { useSessions } from "../../src/contexts/SessionsContext";
+import Header from "../../src/components/ui/Header";
+import Card from "../../src/components/ui/Card";
+import EmptyState from "../../src/components/ui/EmptyState";
+import WeeklyChart from "../../src/components/progress/WeeklyChart";
+import { typography, spacing } from "../../src/theme";
 
 export default function Progress() {
   const { theme } = useTheme();
-  const router = useRouter();
-  const { weeklyChart, todayCount, weekCount } = useSessions();
+  const { sessions, todayCount, weekCount, weeklyChart, currentStreak } = useSessions();
 
-  const todayIndex = new Date().getDay();
-  const maxBar = Math.max(1, ...weeklyChart);
+  const streakLabel = currentStreak > 0 ? `🔥 ${currentStreak}` : "—";
+
+  if (sessions.length === 0) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <Header title="Progress" />
+        <EmptyState
+          icon="stats-chart-outline"
+          title="No sessions yet"
+          subtitle="Complete your first focus session to see your stats here."
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Progress</Text>
-
-        <View style={styles.statsRow}>
-          <View style={styles.statsCard}>
-            <Text style={styles.statsTitle}>{todayCount}</Text>
-            <Text style={styles.statsSubtitle}>Today Focus Sessions</Text>
-          </View>
-
-          <View style={[styles.statsCard, styles.statsCardGreen]}>
-            <Text style={[styles.statsTitle, { color: "#4CAF50" }]}>{weekCount}</Text>
-            <Text style={styles.statsSubtitle}>Weekly Focus Sessions</Text>
-          </View>
-        </View>
-
-        <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <Text style={[styles.cardLabel, { color: theme.textSecondary }]}>Week Overview</Text>
-
-          <View style={styles.chartRow}>
-            {weeklyChart.map((item, index) => (
-              <View key={index} style={styles.chartItem}>
-                <View style={[styles.chartTrack, { backgroundColor: theme.surface }]}>
-                  <View
-                    style={[
-                      styles.chartFill,
-                      {
-                        height: `${(item / maxBar) * 100}%`,
-                        backgroundColor: index === todayIndex ? theme.primary : theme.border,
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={[styles.chartDay, { color: theme.textSecondary }]}>
-                  {["S", "M", "T", "W", "T", "F", "S"][index]}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: theme.card, borderColor: theme.border, marginBottom: 100 },
-          ]}
-        >
-          <Text style={[styles.noteText, { color: theme.textSecondary }]}>
-            🏆 You're 1 session away from beating your weekly record.
+      <Header
+        title="Progress"
+        right={
+          <Text style={[styles.streak, { color: theme.warning, fontFamily: typography.family.bold }]}>
+            {streakLabel}
           </Text>
+        }
+      />
 
-          <TouchableOpacity
-            style={[styles.primaryButton, { backgroundColor: theme.primary }]}
-            onPress={() => router.push("/focus/quick")}
-          >
-            <Text style={styles.primaryButtonText}>Open Focus Session</Text>
-          </TouchableOpacity>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.statsRow}>
+          <Card variant="elevated" padding="lg" style={styles.statCard}>
+            <Text style={[styles.statNum, { color: theme.primary, fontFamily: typography.family.extrabold }]}>
+              {todayCount}
+            </Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Today&rsquo;s Sessions</Text>
+          </Card>
+
+          <Card variant="elevated" padding="lg" style={styles.statCard}>
+            <Text style={[styles.statNum, { color: theme.success, fontFamily: typography.family.extrabold }]}>
+              {weekCount}
+            </Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Weekly Sessions</Text>
+          </Card>
         </View>
+
+        <Card variant="elevated" padding="lg" style={{ marginBottom: spacing.lg }}>
+          <Text style={[styles.cardTitle, { color: theme.text, fontFamily: typography.family.semibold }]}>
+            This Week
+          </Text>
+          <WeeklyChart data={weeklyChart} />
+        </Card>
       </ScrollView>
     </View>
   );
@@ -79,21 +67,11 @@ export default function Progress() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { padding: 20, paddingTop: 60 },
-  headerTitle: { fontSize: 32, fontWeight: "bold", marginBottom: 24 },
-  statsRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 24, gap: 16 },
-  statsCard: { flex: 1, backgroundColor: "#f0f0f0", borderRadius: 16, padding: 20, alignItems: "center" },
-  statsCardGreen: { backgroundColor: "#E8F5E9" },
-  statsTitle: { fontSize: 32, fontWeight: "bold", marginBottom: 8 },
-  statsSubtitle: { fontSize: 12, textAlign: "center" },
-  card: { borderRadius: 16, borderWidth: 1, padding: 20, marginBottom: 16 },
-  cardLabel: { fontSize: 14, fontWeight: "600", marginBottom: 16 },
-  chartRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", gap: 8 },
-  chartItem: { flex: 1, alignItems: "center" },
-  chartTrack: { width: 32, height: 120, borderRadius: 16, overflow: "hidden", justifyContent: "flex-end", marginBottom: 8 },
-  chartFill: { width: "100%", borderRadius: 16 },
-  chartDay: { fontSize: 12, fontWeight: "600" },
-  noteText: { fontSize: 14, marginBottom: 16 },
-  primaryButton: { paddingVertical: 14, borderRadius: 12, alignItems: "center" },
-  primaryButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  content: { padding: spacing.lg, paddingBottom: 120 },
+  streak: { fontSize: typography.size.base },
+  statsRow: { flexDirection: "row", gap: spacing.md, marginBottom: spacing.lg },
+  statCard: { flex: 1, alignItems: "center" },
+  statNum: { fontSize: typography.size["4xl"], marginBottom: spacing.xs },
+  statLabel: { fontSize: typography.size.xs, textAlign: "center" },
+  cardTitle: { fontSize: typography.size.base, marginBottom: spacing.lg },
 });

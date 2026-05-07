@@ -12,6 +12,8 @@ import {
 import { useRouter } from "expo-router";
 import { useTheme } from "../../src/contexts/ThemeContext";
 import { useAuth } from "../../src/contexts/AuthContext";
+import { useToast } from "../../src/contexts/ToastContext";
+import { useHaptics } from "../../src/hooks/useHaptics";
 import Input from "../../src/components/ui/Input";
 import Button from "../../src/components/ui/Button";
 import { typography, spacing } from "../../src/theme";
@@ -19,6 +21,8 @@ import { typography, spacing } from "../../src/theme";
 export default function LoginScreen() {
   const { theme } = useTheme();
   const { login } = useAuth();
+  const { show: toast } = useToast();
+  const haptics = useHaptics();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -44,7 +48,10 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
-    if (!validate()) return;
+    if (!validate()) {
+      haptics.error();
+      return;
+    }
     setLoading(true);
 
     const result = await login({ email, password });
@@ -52,11 +59,11 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (result.success) {
-      // 🔥 التعديل الأساسي: استخدم replace بدل push
-      // وخل المسار كامل مع tabs
+      haptics.success();
       router.replace("/(tabs)");
     } else {
-      setErrors({ general: result.error });
+      haptics.error();
+      toast({ type: "error", message: result.error });
     }
   };
 
@@ -93,7 +100,6 @@ export default function LoginScreen() {
               onChangeText={(text) => {
                 setEmail(text);
                 if (errors.email) setErrors({ ...errors, email: null });
-                if (errors.general) setErrors({ ...errors, general: null });
               }}
               keyboardType="email-address"
               error={errors.email}
@@ -106,23 +112,10 @@ export default function LoginScreen() {
               onChangeText={(text) => {
                 setPassword(text);
                 if (errors.password) setErrors({ ...errors, password: null });
-                if (errors.general) setErrors({ ...errors, general: null });
               }}
               secureTextEntry
               error={errors.password}
             />
-
-            {/* General error message */}
-            {errors.general && (
-              <Text
-                style={[
-                  styles.generalError,
-                  { color: theme.danger },
-                ]}
-              >
-                {errors.general}
-              </Text>
-            )}
 
             <Button
               title="Login"
