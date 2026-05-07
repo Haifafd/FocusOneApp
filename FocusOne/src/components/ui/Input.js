@@ -3,26 +3,13 @@ import { TextInput, View, Text, StyleSheet } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 import { typography, spacing, radius } from "../../theme";
 
-export default function Input({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  secureTextEntry = false,
-  keyboardType = "default",
-  error,
-  style,
-}) {
+export default function Input({ label, value, onChangeText, placeholder, secureTextEntry, keyboardType, error, multiline, style, ...rest }) {
   const { theme } = useTheme();
-  const [isFocused, setIsFocused] = useState(false);
+  const [focused, setFocused] = useState(false);
 
   return (
-    <View style={[styles.container, style]}>
-      {label && (
-        <Text style={[styles.label, { color: theme.textSecondary }]}>
-          {label}
-        </Text>
-      )}
+    <View style={[styles.wrap, style]}>
+      {label && <Text style={[styles.label, { color: theme.textSecondary }]}>{label}</Text>}
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -30,47 +17,29 @@ export default function Input({
         placeholderTextColor={theme.textMuted}
         secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
+        multiline={multiline}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         style={[
           styles.input,
+          multiline && { minHeight: 100, textAlignVertical: "top" },
           {
             backgroundColor: theme.surface,
             color: theme.text,
-            borderColor: error
-              ? theme.danger
-              : isFocused
-              ? theme.primary
-              : theme.border,
+            borderColor: error ? theme.danger : focused ? theme.primary : theme.border,
+            fontFamily: typography.family.regular,
           },
         ]}
+        {...rest}
       />
-      {error && (
-        <Text style={[styles.error, { color: theme.danger }]}>{error}</Text>
-      )}
+      {error && <Text style={[styles.err, { color: theme.danger }]}>{error}</Text>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: spacing.md,
-  },
-  label: {
-    fontSize: typography.size.sm,
-    fontWeight: typography.weight.medium,
-    marginBottom: spacing.xs,
-  },
-  input: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    fontSize: typography.size.base,
-    minHeight: 50,
-  },
-  error: {
-    fontSize: typography.size.xs,
-    marginTop: spacing.xs,
-  },
+  wrap: { marginBottom: spacing.md },
+  label: { fontSize: typography.size.sm, fontFamily: typography.family.medium, marginBottom: spacing.xs },
+  input: { paddingVertical: spacing.md, paddingHorizontal: spacing.lg, borderRadius: radius.md, borderWidth: 1.5, fontSize: typography.size.base, minHeight: 50 },
+  err: { fontSize: typography.size.xs, marginTop: spacing.xs },
 });

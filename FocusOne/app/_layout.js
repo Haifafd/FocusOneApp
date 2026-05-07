@@ -11,6 +11,7 @@ import {
 } from "@expo-google-fonts/plus-jakarta-sans";
 import { AuthProvider } from "../src/contexts/AuthContext";
 import { ThemeProvider } from "../src/contexts/ThemeContext";
+import { ToastProvider } from "../src/contexts/ToastContext";
 import { SettingsProvider } from "../src/contexts/SettingsContext";
 import { GoalsProvider } from "../src/contexts/GoalsContext";
 import { SessionsProvider } from "../src/contexts/SessionsContext";
@@ -37,24 +38,26 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <SettingsProvider>
-          <GoalsProvider>
-            <SessionsProvider>
-              <NotesProvider>
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="index" />
-                  <Stack.Screen name="(onboarding)" />
-                  <Stack.Screen name="(auth)" />
-                  <Stack.Screen name="(tabs)" />
-                  <Stack.Screen name="focus" />
-                  <Stack.Screen name="note" />
-                </Stack>
-              </NotesProvider>
-            </SessionsProvider>
-          </GoalsProvider>
-        </SettingsProvider>
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <SettingsProvider>
+            <GoalsProvider>
+              <SessionsProvider>
+                <NotesProvider>
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="index" />
+                    <Stack.Screen name="(onboarding)" />
+                    <Stack.Screen name="(auth)" />
+                    <Stack.Screen name="(tabs)" />
+                    <Stack.Screen name="focus" />
+                    <Stack.Screen name="note" />
+                  </Stack>
+                </NotesProvider>
+              </SessionsProvider>
+            </GoalsProvider>
+          </SettingsProvider>
+        </AuthProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

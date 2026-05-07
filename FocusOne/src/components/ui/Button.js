@@ -1,79 +1,65 @@
 import { Pressable, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
-import { typography, spacing, radius } from "../../theme";
+import { typography, spacing, radius, shadows } from "../../theme";
 
 export default function Button({
   title,
   onPress,
-  variant = "primary", // 'primary' | 'secondary' | 'outline'
+  variant = "primary",
+  size = "md",
   loading = false,
   disabled = false,
+  icon,
   style,
 }) {
   const { theme } = useTheme();
-
-  // تحديد ألوان الزر حسب النوع
-  const getStyles = () => {
-    switch (variant) {
-      case "secondary":
-        return {
-          background: theme.surface,
-          textColor: theme.text,
-          border: "transparent",
-        };
-      case "outline":
-        return {
-          background: "transparent",
-          textColor: theme.primary,
-          border: theme.primary,
-        };
-      default: // primary
-        return {
-          background: theme.primary,
-          textColor: "#FFFFFF",
-          border: "transparent",
-        };
-    }
-  };
-
-  const colors = getStyles();
   const isDisabled = disabled || loading;
+
+  const variantStyles = {
+    primary:   { bg: theme.primary, text: theme.onPrimary, border: "transparent", shadow: shadows.sm },
+    secondary: { bg: theme.surfaceMuted, text: theme.text, border: "transparent", shadow: null },
+    outline:   { bg: "transparent", text: theme.primary, border: theme.primary, shadow: null },
+    ghost:     { bg: "transparent", text: theme.primary, border: "transparent", shadow: null },
+    danger:    { bg: theme.danger, text: "#fff", border: "transparent", shadow: shadows.sm },
+  }[variant];
+
+  const sizeStyles = {
+    sm: { paddingV: spacing.sm, paddingH: spacing.lg, fontSize: typography.size.sm, minHeight: 38 },
+    md: { paddingV: spacing.md, paddingH: spacing.xl, fontSize: typography.size.base, minHeight: 50 },
+    lg: { paddingV: spacing.lg, paddingH: spacing["2xl"], fontSize: typography.size.lg, minHeight: 58 },
+  }[size];
 
   return (
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
       style={({ pressed }) => [
-        styles.button,
+        styles.btn,
+        variantStyles.shadow,
         {
-          backgroundColor: colors.background,
-          borderColor: colors.border,
-          opacity: isDisabled ? 0.5 : pressed ? 0.8 : 1,
+          backgroundColor: variantStyles.bg,
+          borderColor: variantStyles.border,
+          paddingVertical: sizeStyles.paddingV,
+          paddingHorizontal: sizeStyles.paddingH,
+          minHeight: sizeStyles.minHeight,
+          opacity: isDisabled ? 0.5 : pressed ? 0.85 : 1,
+          transform: [{ scale: pressed && !isDisabled ? 0.98 : 1 }],
         },
         style,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={colors.textColor} />
+        <ActivityIndicator color={variantStyles.text} />
       ) : (
-        <Text style={[styles.text, { color: colors.textColor }]}>{title}</Text>
+        <>
+          {icon}
+          <Text style={{ color: variantStyles.text, fontSize: sizeStyles.fontSize, fontFamily: typography.family.semibold }}>{title}</Text>
+        </>
       )}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
-    borderRadius: radius.lg,
-    borderWidth: 1.5,
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 50,
-  },
-  text: {
-    fontSize: typography.size.base,
-    fontWeight: typography.weight.semibold,
-  },
+  btn: { borderRadius: radius.lg, borderWidth: 1.5, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 },
 });

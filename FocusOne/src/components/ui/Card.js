@@ -1,17 +1,19 @@
 import { View, StyleSheet } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
-import { spacing, radius } from "../../theme";
+import { spacing, radius, shadows } from "../../theme";
 
-export default function Card({ children, style }) {
+export default function Card({ children, variant = "elevated", padding = "lg", style }) {
   const { theme } = useTheme();
-
   return (
     <View
       style={[
         styles.card,
+        variant === "elevated" ? shadows.md : null,
         {
           backgroundColor: theme.card,
           borderColor: theme.border,
+          borderWidth: variant === "outlined" ? 1 : 0,
+          padding: spacing[padding],
           shadowColor: theme.shadow,
         },
         style,
@@ -22,14 +24,4 @@ export default function Card({ children, style }) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    padding: spacing.lg,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-});
+const styles = StyleSheet.create({ card: { borderRadius: radius.lg } });
