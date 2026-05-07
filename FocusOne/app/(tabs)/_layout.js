@@ -10,6 +10,7 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
 
+        // 🎨 Style
         tabBarStyle: {
           backgroundColor: theme.card,
           borderTopColor: theme.border,
@@ -20,14 +21,16 @@ export default function TabsLayout() {
 
         tabBarActiveTintColor: theme.primary,
         tabBarInactiveTintColor: theme.textSecondary,
-
         tabBarLabelStyle: {
           fontSize: 11,
         },
+
+        // 🚨 مهم: يمنع مشاكل التنقل الغلط
+        lazy: true,
       }}
     >
 
-      {/* 1 — Home 🏠 */}
+      {/* 🏠 Home */}
       <Tabs.Screen
         name="Homescreen"
         options={{
@@ -38,7 +41,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 2 — Goals 🎯 */}
+      {/* 🎯 Goals */}
       <Tabs.Screen
         name="GoalsScreen"
         options={{
@@ -49,7 +52,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 3 — Progress 📊 */}
+      {/* 📊 Progress */}
       <Tabs.Screen
         name="ProgressScreen"
         options={{
@@ -60,7 +63,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 4 — Camera 📸 */}
+      {/* 📸 Camera */}
       <Tabs.Screen
         name="camera"
         options={{
@@ -71,7 +74,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 5 — Notes 📝 */}
+      {/* 📝 Notes */}
       <Tabs.Screen
         name="NotesScreen"
         options={{
@@ -82,7 +85,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 6 — Settings ⚙️ */}
+      {/* ⚙️ Settings */}
       <Tabs.Screen
         name="Settings"
         options={{

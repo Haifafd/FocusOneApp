@@ -12,20 +12,34 @@ export function AuthProvider({ children }) {
     (async () => {
       try {
         const savedUser = await storage.get(STORAGE_KEYS.USER);
-        if (savedUser) setUser(savedUser);
+
+        // 🔴 تحقق قوي من صحة البيانات
+        if (
+          savedUser &&
+          typeof savedUser === "object" &&
+          savedUser.id &&
+          savedUser.email
+        ) {
+          setUser(savedUser);
+        } else {
+          await storage.remove(STORAGE_KEYS.USER);
+          setUser(null);
+        }
       } catch (e) {
         console.log("Error loading user:", e);
+        setUser(null);
       } finally {
         setIsLoaded(true);
       }
     })();
   }, []);
 
-  // Register a new account
+  // Register
   const register = async ({ name, email, password }) => {
     try {
-      // Check if email already exists
-      const existingUsers = (await storage.get(STORAGE_KEYS.USERS)) || [];
+      const existingUsers =
+        (await storage.get(STORAGE_KEYS.USERS)) || [];
+
       const emailExists = existingUsers.some(
         (u) => u.email.toLowerCase() === email.toLowerCase()
       );
@@ -34,22 +48,20 @@ export function AuthProvider({ children }) {
         return { success: false, error: "This email is already registered" };
       }
 
-      // Create new user
       const newUser = {
         id: Date.now().toString(),
         name: name.trim(),
         email: email.trim().toLowerCase(),
-        password, // Note: in production, never store plain passwords
+        password,
         createdAt: new Date().toISOString(),
       };
 
-      // Save in users list
       const updatedUsers = [...existingUsers, newUser];
       await storage.set(STORAGE_KEYS.USERS, updatedUsers);
 
-      // Save as current logged-in user (without password)
       const userSession = { ...newUser };
       delete userSession.password;
+
       await storage.set(STORAGE_KEYS.USER, userSession);
       setUser(userSession);
 
@@ -60,10 +72,12 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Login existing user
+  // Login
   const login = async ({ email, password }) => {
     try {
-      const existingUsers = (await storage.get(STORAGE_KEYS.USERS)) || [];
+      const existingUsers =
+        (await storage.get(STORAGE_KEYS.USERS)) || [];
+
       const foundUser = existingUsers.find(
         (u) =>
           u.email.toLowerCase() === email.trim().toLowerCase() &&
@@ -74,9 +88,9 @@ export function AuthProvider({ children }) {
         return { success: false, error: "Invalid email or password" };
       }
 
-      // Save session (without password)
       const userSession = { ...foundUser };
       delete userSession.password;
+
       await storage.set(STORAGE_KEYS.USER, userSession);
       setUser(userSession);
 
