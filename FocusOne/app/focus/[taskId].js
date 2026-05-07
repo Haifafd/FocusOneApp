@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { View, Text, Pressable, StyleSheet, Modal, Alert } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../src/contexts/ThemeContext";
 import { useGoals } from "../../src/contexts/GoalsContext";
@@ -47,10 +49,35 @@ export default function FocusSession() {
       goalId: task.goalId,
       durationMinutes: duration,
     });
-    router.replace({ pathname: "/focus/complete", params: { duration: String(duration) } });
+    router.replace({
+      pathname: "/focus/complete",
+      params: {
+        duration: String(duration),
+        taskTitle: task.title || "Focus Session",
+      },
+    });
   };
 
   const timer = useTimer({ totalSeconds: duration * 60, onComplete });
+
+  // Ambient breathing animation behind the timer ring.
+  const breath = useSharedValue(0.85);
+  useEffect(() => {
+    if (timer.isRunning) {
+      breath.value = withRepeat(
+        withTiming(1.05, { duration: 4000, easing: Easing.inOut(Easing.quad) }),
+        -1,
+        true
+      );
+    } else {
+      breath.value = withTiming(0.9, { duration: 600 });
+    }
+  }, [timer.isRunning, breath]);
+
+  const breathStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: breath.value }],
+    opacity: 0.55 + (breath.value - 0.9) * 1.2,
+  }));
 
   useEffect(() => {
     fetchQuote().then(setQuote);
@@ -102,9 +129,22 @@ export default function FocusSession() {
   };
 
   const primaryLabel = timer.isRunning ? "Pause" : timer.isPaused ? "Resume" : "Start";
+  const ambientColors =
+    theme.mode === "dark"
+      ? ["rgba(99, 102, 241, 0.28)", "rgba(99, 102, 241, 0)"]
+      : ["rgba(99, 102, 241, 0.22)", "rgba(99, 102, 241, 0)"];
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Animated.View style={[styles.ambient, breathStyle]} pointerEvents="none">
+        <LinearGradient
+          colors={ambientColors}
+          style={styles.ambientGradient}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+        />
+      </Animated.View>
+
       <Header
         title=""
         right={
@@ -181,6 +221,8 @@ export default function FocusSession() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  ambient: { position: "absolute", top: 60, left: -40, right: -40, height: 460, alignItems: "center", justifyContent: "center" },
+  ambientGradient: { width: "100%", height: "100%", borderRadius: 999 },
   content: { flex: 1, alignItems: "center", paddingHorizontal: spacing.xl, paddingTop: spacing.lg, gap: spacing.lg },
   cancelText: { fontSize: typography.size.sm },
   label: { fontSize: typography.size.xs, letterSpacing: 1.5 },

@@ -32,9 +32,13 @@ export default function NewGoal() {
       return;
     }
     setSaving(true);
-    const tasks = taskTitle.trim()
-      ? [{ title: taskTitle.trim(), duration: Math.max(1, Number(duration) || settings.defaultDuration) }]
-      : [];
+    const taskDuration = Math.max(1, Number(duration) || settings.defaultDuration);
+    const tasks = [
+      {
+        title: taskTitle.trim() || title.trim(),
+        duration: taskDuration,
+      },
+    ];
     await addGoal({ title, description, tasks });
     setSaving(false);
     haptics.success();
@@ -85,14 +89,14 @@ export default function NewGoal() {
           />
 
           <Input
-            label="First Task (optional)"
-            placeholder="First task"
+            label="First Task"
+            placeholder="(uses goal title if empty)"
             value={taskTitle}
             onChangeText={setTaskTitle}
           />
 
           <Input
-            label="Task Duration (minutes)"
+            label="Focus Duration (minutes)"
             placeholder={String(settings.defaultDuration)}
             value={duration}
             onChangeText={setDuration}

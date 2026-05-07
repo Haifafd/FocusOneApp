@@ -27,6 +27,10 @@ function NoteCard({ note, onDelete }) {
         </Pressable>
       </View>
 
+      {!!note.content && (
+        <Text style={[styles.content, { color: theme.textSecondary }]}>{note.content}</Text>
+      )}
+
       {note.photo && (
         <Image source={note.photo} style={styles.photo} contentFit="cover" transition={200} />
       )}
@@ -49,6 +53,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "flex-start", gap: spacing.md, marginBottom: spacing.sm },
   title: { fontSize: typography.size.lg, marginBottom: 2 },
   date: { fontSize: typography.size.xs },
+  content: { fontSize: typography.size.sm, lineHeight: 20, marginTop: spacing.xs },
   photo: { width: "100%", height: 200, borderRadius: 12, marginTop: spacing.sm },
   drawing: { width: "100%", height: 160, marginTop: spacing.sm },
 });

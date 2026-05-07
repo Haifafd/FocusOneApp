@@ -31,6 +31,10 @@ export function SessionsProvider({ children }) {
   const weekCount = useMemo(() => sessionsRepo.countWeek(sessions), [sessions]);
   const weeklyChart = useMemo(() => sessionsRepo.weeklyChart(sessions), [sessions]);
   const currentStreak = useMemo(() => sessionsRepo.computeStreak(sessions), [sessions]);
+  const totalMinutes = useMemo(
+    () => sessions.reduce((sum, s) => sum + (Number(s.durationMinutes) || 0), 0),
+    [sessions]
+  );
 
   return (
     <SessionsContext.Provider
@@ -43,6 +47,7 @@ export function SessionsProvider({ children }) {
         weekCount,
         weeklyChart,
         currentStreak,
+        totalMinutes,
       }}
     >
       {children}

@@ -47,6 +47,28 @@ export function GoalsProvider({ children }) {
     },
     [refresh]
   );
+  const addTask = useCallback(
+    async (gId, input) => {
+      const t = await goalsRepo.addTask(gId, input);
+      await refresh();
+      return t;
+    },
+    [refresh]
+  );
+  const updateTask = useCallback(
+    async (gId, tId, patch) => {
+      await goalsRepo.updateTask(gId, tId, patch);
+      await refresh();
+    },
+    [refresh]
+  );
+  const removeTask = useCallback(
+    async (gId, tId) => {
+      await goalsRepo.removeTask(gId, tId);
+      await refresh();
+    },
+    [refresh]
+  );
 
   return (
     <GoalsContext.Provider
@@ -57,6 +79,9 @@ export function GoalsProvider({ children }) {
         updateGoal,
         removeGoal,
         toggleTask,
+        addTask,
+        updateTask,
+        removeTask,
         refresh,
         computeProgress: goalsRepo.computeProgress,
       }}

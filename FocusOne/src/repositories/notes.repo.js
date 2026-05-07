@@ -6,13 +6,14 @@ export const notesRepo = {
     return (await storage.get(STORAGE_KEYS.NOTES)) || [];
   },
 
-  async create({ title, photo, drawing }) {
+  async create({ title, photo, drawing, content }) {
     const notes = await this.list();
     const note = {
       id: generateId(),
       title: title.trim(),
       photo: photo || null,
       drawing: drawing || [],
+      content: (content || "").trim(),
       createdAt: new Date().toISOString(),
     };
     await storage.set(STORAGE_KEYS.NOTES, [note, ...notes]);

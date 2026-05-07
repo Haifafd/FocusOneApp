@@ -1,17 +1,13 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "../../src/contexts/ThemeContext";
+import FloatingTabBar from "../../src/components/ui/FloatingTabBar";
 
 export default function TabsLayout() {
-  const { theme } = useTheme();
   return (
     <Tabs
+      tabBar={(props) => <FloatingTabBar {...props} />}
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: theme.primary,
-        tabBarInactiveTintColor: theme.textSecondary,
-        tabBarStyle: { backgroundColor: theme.card, borderTopColor: theme.border, height: 70, paddingBottom: 10, paddingTop: 8 },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
         tabBarIcon: ({ color, focused, size }) => {
           const iconMap = {
             index: focused ? "home" : "home-outline",

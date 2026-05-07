@@ -28,6 +28,11 @@ export default function Goals() {
     toast({ type: "success", message: "Goal deleted" });
   };
 
+  const onOpen = (goal) => {
+    haptics.selection();
+    router.push({ pathname: "/goal/[id]", params: { id: goal.id } });
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Header
@@ -54,7 +59,12 @@ export default function Goals() {
           keyExtractor={(g) => g.id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <GoalCard goal={item} progress={computeProgress(item)} onDelete={onDelete} />
+            <GoalCard
+              goal={item}
+              progress={computeProgress(item)}
+              onDelete={onDelete}
+              onPress={onOpen}
+            />
           )}
         />
       )}
@@ -66,5 +76,5 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   addBtn: { flexDirection: "row", alignItems: "center", gap: 2 },
   addText: { fontSize: typography.size.base },
-  list: { padding: spacing.lg, paddingBottom: 120 },
+  list: { padding: spacing.lg, paddingBottom: 140 },
 });

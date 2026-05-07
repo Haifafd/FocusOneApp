@@ -16,7 +16,7 @@ export const goalsRepo = {
       tasks: (input.tasks || []).map((t) => ({
         id: generateId(),
         title: t.title,
-        duration: t.duration || 25,
+        duration: Number(t.duration) > 0 ? Number(t.duration) : 25,
         completed: false,
       })),
       createdAt: new Date().toISOString(),
@@ -48,6 +48,51 @@ export const goalsRepo = {
         ),
       };
     });
+    await storage.set(STORAGE_KEYS.GOALS, updated);
+  },
+
+  async addTask(goalId, taskInput) {
+    const goals = await this.list();
+    const newTask = {
+      id: generateId(),
+      title: (taskInput.title || "").trim() || "Task",
+      duration: Number(taskInput.duration) > 0 ? Number(taskInput.duration) : 25,
+      completed: false,
+    };
+    const updated = goals.map((g) =>
+      g.id === goalId ? { ...g, tasks: [...(g.tasks || []), newTask] } : g
+    );
+    await storage.set(STORAGE_KEYS.GOALS, updated);
+    return newTask;
+  },
+
+  async updateTask(goalId, taskId, patch) {
+    const goals = await this.list();
+    const updated = goals.map((g) => {
+      if (g.id !== goalId) return g;
+      return {
+        ...g,
+        tasks: g.tasks.map((t) => {
+          if (t.id !== taskId) return t;
+          const next = { ...t, ...patch };
+          if (patch.duration !== undefined) {
+            next.duration = Number(patch.duration) > 0 ? Number(patch.duration) : t.duration;
+          }
+          if (patch.title !== undefined) {
+            next.title = String(patch.title).trim() || t.title;
+          }
+          return next;
+        }),
+      };
+    });
+    await storage.set(STORAGE_KEYS.GOALS, updated);
+  },
+
+  async removeTask(goalId, taskId) {
+    const goals = await this.list();
+    const updated = goals.map((g) =>
+      g.id === goalId ? { ...g, tasks: (g.tasks || []).filter((t) => t.id !== taskId) } : g
+    );
     await storage.set(STORAGE_KEYS.GOALS, updated);
   },
 

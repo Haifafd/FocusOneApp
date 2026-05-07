@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../src/contexts/ThemeContext";
@@ -67,8 +69,14 @@ export default function Home() {
     router.push({ pathname: "/focus/[taskId]", params: { taskId, duration: String(focusDuration) } });
   };
 
+  const glowColors =
+    theme.mode === "dark"
+      ? ["rgba(99, 102, 241, 0.22)", "rgba(99, 102, 241, 0)"]
+      : ["rgba(99, 102, 241, 0.12)", "rgba(99, 102, 241, 0)"];
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <LinearGradient colors={glowColors} style={styles.glow} pointerEvents="none" />
       <Header
         title=""
         right={streakBadge ? <Text style={[styles.streak, { color: theme.warning }]}>{streakBadge}</Text> : null}
@@ -83,21 +91,27 @@ export default function Home() {
         </Animated.View>
 
         <Animated.View entering={FadeInDown.duration(400).delay(100)}>
-          <Card variant="elevated" padding="lg" style={styles.card}>
-            <View style={styles.cardHeader}>
-              <View style={[styles.dot, { backgroundColor: theme.primary }]} />
-              <Text style={[styles.cardTitle, { color: theme.text, fontFamily: typography.family.semibold }]} numberOfLines={1}>
-                {currentGoal.title}
-              </Text>
-            </View>
-            <View style={styles.progressRow}>
-              <Text style={{ color: theme.textSecondary, fontSize: typography.size.sm }}>Progress</Text>
-              <Text style={{ color: theme.primary, fontFamily: typography.family.bold, fontSize: typography.size.sm }}>
-                {progress}%
-              </Text>
-            </View>
-            <ProgressBar progress={progress} />
-          </Card>
+          <Pressable
+            onPress={() => router.push({ pathname: "/goal/[id]", params: { id: currentGoal.id } })}
+            style={({ pressed }) => [pressed && { opacity: 0.85 }]}
+          >
+            <Card variant="elevated" padding="lg" style={styles.card}>
+              <View style={styles.cardHeader}>
+                <View style={[styles.dot, { backgroundColor: theme.primary }]} />
+                <Text style={[styles.cardTitle, { color: theme.text, fontFamily: typography.family.semibold }]} numberOfLines={1}>
+                  {currentGoal.title}
+                </Text>
+                <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+              </View>
+              <View style={styles.progressRow}>
+                <Text style={{ color: theme.textSecondary, fontSize: typography.size.sm }}>Progress</Text>
+                <Text style={{ color: theme.primary, fontFamily: typography.family.bold, fontSize: typography.size.sm }}>
+                  {progress}%
+                </Text>
+              </View>
+              <ProgressBar progress={progress} />
+            </Card>
+          </Pressable>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.duration(400).delay(200)}>
@@ -128,7 +142,8 @@ export default function Home() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: spacing.lg, paddingBottom: 120, gap: spacing.md },
+  glow: { position: "absolute", top: 0, left: 0, right: 0, height: 320 },
+  content: { padding: spacing.lg, paddingBottom: 140, gap: spacing.md },
   streak: { fontSize: typography.size.base, fontWeight: "700" },
   greeting: { fontSize: typography.size["2xl"] },
   sub: { fontSize: typography.size.sm, marginTop: spacing.xs, marginBottom: spacing.md },
