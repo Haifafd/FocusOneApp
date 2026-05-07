@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -14,12 +14,13 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import Svg, { Path } from "react-native-svg";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../../src/contexts/ThemeContext";
+import { useNotes } from "../../src/contexts/NotesContext";
 import { router } from "expo-router";
 
 export default function NewNote() {
   const { theme } = useTheme();
+  const { addNote } = useNotes();
 
   const [photo, setPhoto] = useState(null);
   const [title, setTitle] = useState("");
@@ -27,40 +28,19 @@ export default function NewNote() {
   const [paths, setPaths] = useState([]);
   const [currentPath, setCurrentPath] = useState("");
 
-  const [notes, setNotes] = useState([]);
-
-  useEffect(() => {
-    const loadNotes = async () => {
-      const stored = await AsyncStorage.getItem("@notes");
-      if (stored) setNotes(JSON.parse(stored));
-    };
-    loadNotes();
-  }, []);
-
   const handleSave = async () => {
     if (!title.trim()) {
       Alert.alert("تنبيه", "الرجاء كتابة عنوان للملاحظة");
       return;
     }
 
-    const newNote = {
-      id: Date.now().toString(),
-      title,
-      photo,
-      drawing: paths,
-      date: getDate(),
-    };
-
-    const updated = [newNote, ...notes];
-    setNotes(updated);
-
-    await AsyncStorage.setItem("@notes", JSON.stringify(updated));
+    await addNote({ title, photo, drawing: paths });
 
     setTitle("");
     setPhoto(null);
     setPaths([]);
 
-router.replace("/note");
+    router.replace("/note");
   };
 
   const getDate = () => {

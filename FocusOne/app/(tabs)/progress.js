@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../src/contexts/ThemeContext";
-import { Ionicons } from "@expo/vector-icons";
+import { useSessions } from "../../src/contexts/SessionsContext";
 
 export default function Progress() {
   const { theme } = useTheme();
   const router = useRouter();
+  const { weeklyChart, todayCount, weekCount } = useSessions();
 
-  const weeklyData = [4, 5, 5, 5, 6, 5, 5];
+  const todayIndex = new Date().getDay();
+  const maxBar = Math.max(1, ...weeklyChart);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -18,12 +20,12 @@ export default function Progress() {
 
         <View style={styles.statsRow}>
           <View style={styles.statsCard}>
-            <Text style={styles.statsTitle}>4</Text>
+            <Text style={styles.statsTitle}>{todayCount}</Text>
             <Text style={styles.statsSubtitle}>Today Focus Sessions</Text>
           </View>
 
           <View style={[styles.statsCard, styles.statsCardGreen]}>
-            <Text style={[styles.statsTitle, { color: "#4CAF50" }]}>16</Text>
+            <Text style={[styles.statsTitle, { color: "#4CAF50" }]}>{weekCount}</Text>
             <Text style={styles.statsSubtitle}>Weekly Focus Sessions</Text>
           </View>
         </View>
@@ -32,15 +34,15 @@ export default function Progress() {
           <Text style={[styles.cardLabel, { color: theme.textSecondary }]}>Week Overview</Text>
 
           <View style={styles.chartRow}>
-            {weeklyData.map((item, index) => (
+            {weeklyChart.map((item, index) => (
               <View key={index} style={styles.chartItem}>
                 <View style={[styles.chartTrack, { backgroundColor: theme.surface }]}>
                   <View
                     style={[
                       styles.chartFill,
                       {
-                        height: `${(item / 8) * 100}%`,
-                        backgroundColor: index === 4 ? theme.primary : theme.border,
+                        height: `${(item / maxBar) * 100}%`,
+                        backgroundColor: index === todayIndex ? theme.primary : theme.border,
                       },
                     ]}
                   />

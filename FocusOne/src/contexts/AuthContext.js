@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { storage, STORAGE_KEYS } from "../services/storage";
+import { usersRepo } from "../repositories/users.repo";
 
 const AuthContext = createContext();
 
@@ -7,13 +8,10 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load saved user on app start
   useEffect(() => {
     (async () => {
       try {
         const savedUser = await storage.get(STORAGE_KEYS.USER);
-
-        // 🔴 تحقق قوي من صحة البيانات
         if (
           savedUser &&
           typeof savedUser === "object" &&
@@ -26,7 +24,7 @@ export function AuthProvider({ children }) {
           setUser(null);
         }
       } catch (e) {
-        console.log("Error loading user:", e);
+        console.warn("Error loading user:", e);
         setUser(null);
       } finally {
         setIsLoaded(true);
@@ -34,81 +32,46 @@ export function AuthProvider({ children }) {
     })();
   }, []);
 
-  // Register
   const register = async ({ name, email, password }) => {
     try {
-      const existingUsers =
-        (await storage.get(STORAGE_KEYS.USERS)) || [];
-
-      const emailExists = existingUsers.some(
-        (u) => u.email.toLowerCase() === email.toLowerCase()
-      );
-
-      if (emailExists) {
+      const existing = await usersRepo.findByEmail(email);
+      if (existing) {
         return { success: false, error: "This email is already registered" };
       }
-
-      const newUser = {
-        id: Date.now().toString(),
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        password,
-        createdAt: new Date().toISOString(),
-      };
-
-      const updatedUsers = [...existingUsers, newUser];
-      await storage.set(STORAGE_KEYS.USERS, updatedUsers);
-
-      const userSession = { ...newUser };
-      delete userSession.password;
-
-      await storage.set(STORAGE_KEYS.USER, userSession);
-      setUser(userSession);
-
+      const newUser = await usersRepo.create({ name, email, password });
+      const session = usersRepo.toSession(newUser);
+      await storage.set(STORAGE_KEYS.USER, session);
+      setUser(session);
       return { success: true };
     } catch (e) {
-      console.log("Register error:", e);
+      console.warn("Register error:", e);
       return { success: false, error: "Something went wrong" };
     }
   };
 
-  // Login
   const login = async ({ email, password }) => {
     try {
-      const existingUsers =
-        (await storage.get(STORAGE_KEYS.USERS)) || [];
-
-      const foundUser = existingUsers.find(
-        (u) =>
-          u.email.toLowerCase() === email.trim().toLowerCase() &&
-          u.password === password
-      );
-
-      if (!foundUser) {
+      const found = await usersRepo.findByEmail(email);
+      if (!found || found.password !== password) {
         return { success: false, error: "Invalid email or password" };
       }
-
-      const userSession = { ...foundUser };
-      delete userSession.password;
-
-      await storage.set(STORAGE_KEYS.USER, userSession);
-      setUser(userSession);
-
+      const session = usersRepo.toSession(found);
+      await storage.set(STORAGE_KEYS.USER, session);
+      setUser(session);
       return { success: true };
     } catch (e) {
-      console.log("Login error:", e);
+      console.warn("Login error:", e);
       return { success: false, error: "Something went wrong" };
     }
   };
 
-  // Logout
   const logout = async () => {
     try {
       await storage.remove(STORAGE_KEYS.USER);
       setUser(null);
       return { success: true };
     } catch (e) {
-      console.log("Logout error:", e);
+      console.warn("Logout error:", e);
       return { success: false };
     }
   };

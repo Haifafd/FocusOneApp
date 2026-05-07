@@ -8,25 +8,24 @@ import {
 } from "react-native";
 import { useTheme } from "../../src/contexts/ThemeContext";
 import { useAuth } from "../../src/contexts/AuthContext";
+import { useGoals } from "../../src/contexts/GoalsContext";
+import { useSettings } from "../../src/contexts/SettingsContext";
 import { useRouter } from "expo-router";
 
 export default function Home() {
-  const goals = [
-    { id: '1', title: 'Graduation Project', progress: 85, tasks: [{ title: 'UI Design', duration: 30, completed: false }] }
-  ];
-  const selectedGoalId = null;
-
   const { theme } = useTheme();
   const { user } = useAuth();
+  const { goals, computeProgress } = useGoals();
+  const { settings } = useSettings();
   const router = useRouter();
 
   const displayName = user?.name || user?.email?.split("@")[0] || "Guest";
 
-  const currentGoal = goals.length > 0
-    ? (selectedGoalId ? goals.find(g => g.id === selectedGoalId) : goals[0])
-    : { title: "Build My Project", progress: 0, tasks: [] };
-
-  const incompleteTasks = currentGoal?.tasks?.filter(t => !t.completed).length || 0;
+  const currentGoal = goals[0] || { title: "No Goal Yet", tasks: [] };
+  const progress = goals.length > 0 ? computeProgress(currentGoal) : 0;
+  const firstTask = currentGoal?.tasks?.[0];
+  const incompleteTasks = currentGoal?.tasks?.filter((t) => !t.completed).length || 0;
+  const focusDuration = firstTask?.duration || settings.defaultDuration;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -43,10 +42,10 @@ export default function Home() {
           </View>
           <View style={styles.progressTextRow}>
             <Text style={{ color: theme.textSecondary }}>Progress</Text>
-            <Text style={{ color: theme.primary, fontWeight: "bold" }}>{currentGoal.progress || 0}%</Text>
+            <Text style={{ color: theme.primary, fontWeight: "bold" }}>{progress}%</Text>
           </View>
           <View style={[styles.progressBarBackground, { backgroundColor: theme.surface }]}>
-            <View style={[styles.progressBarFill, { backgroundColor: theme.primary, width: `${currentGoal.progress || 0}%` }]} />
+            <View style={[styles.progressBarFill, { backgroundColor: theme.primary, width: `${progress}%` }]} />
           </View>
         </View>
 
@@ -54,14 +53,14 @@ export default function Home() {
 
         <View style={[styles.taskCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <Text style={[styles.taskName, { color: theme.text }]}>
-            {currentGoal?.tasks?.[0]?.title || "No Tasks"}
+            {firstTask?.title || "No Tasks"}
           </Text>
           <Text style={[styles.taskDesc, { color: theme.textSecondary }]}>
-            {incompleteTasks} tasks remaining • {currentGoal?.tasks?.[0]?.duration || 25} min focus session
+            {incompleteTasks} tasks remaining • {focusDuration} min focus session
           </Text>
-          <TouchableOpacity 
-            style={[styles.startBtn, { backgroundColor: theme.primary }]} 
-            onPress={() => router.push("/focus/quick")}
+          <TouchableOpacity
+            style={[styles.startBtn, { backgroundColor: theme.primary }]}
+            onPress={() => router.push(`/focus/${firstTask?.id || "quick"}`)}
           >
             <Text style={styles.btnText}>Start Focus</Text>
           </TouchableOpacity>

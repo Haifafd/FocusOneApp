@@ -14,15 +14,20 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../src/contexts/ThemeContext";
+import { useSessions } from "../../src/contexts/SessionsContext";
+import { useSettings } from "../../src/contexts/SettingsContext";
 
 export default function FocusSession() {
   const router = useRouter();
-  const { taskId } = useLocalSearchParams();
+  const { taskId, duration: durationParam } = useLocalSearchParams();
   const { theme } = useTheme();
+  const { addSession } = useSessions();
+  const { settings } = useSettings();
 
-  const task = { title: "Focus Task", duration: 1, id: taskId };
+  const initialDuration = durationParam ? String(durationParam) : String(settings.defaultDuration);
+  const task = { title: "Focus Task", duration: Number(initialDuration), id: taskId };
 
-  const [duration, setDuration] = useState(String(task.duration));
+  const [duration, setDuration] = useState(initialDuration);
   const total = Number(duration || 1) * 60;
 
   const [secondsLeft, setSecondsLeft] = useState(total);
@@ -84,7 +89,14 @@ export default function FocusSession() {
         if (prev <= 1) {
           clearInterval(intervalRef.current);
           setRunning(false);
-          router.replace("/focus/complete");
+          (async () => {
+            await addSession({
+              taskId: taskId === "quick" ? null : taskId,
+              goalId: null,
+              durationMinutes: Number(duration),
+            });
+            router.replace({ pathname: "/focus/complete", params: { duration: String(duration) } });
+          })();
           return 0;
         }
         return prev - 1;

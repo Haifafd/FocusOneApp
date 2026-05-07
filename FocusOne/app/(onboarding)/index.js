@@ -17,7 +17,7 @@ import {
   OneGoalIllustration,
   FocusSessionsIllustration,
 } from "../../src/components/onboarding/OnboardingIllustration";
-import { typography, spacing } from "../../src/theme/typography";
+import { typography, spacing } from "../../src/theme";
 
 const { width } = Dimensions.get("window");
 

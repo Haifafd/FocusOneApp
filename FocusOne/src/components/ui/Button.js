@@ -1,6 +1,6 @@
 import { Pressable, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
-import { typography, spacing, radius } from "../../theme/typography";
+import { typography, spacing, radius } from "../../theme";
 
 export default function Button({
   title,

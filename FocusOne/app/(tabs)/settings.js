@@ -1,23 +1,37 @@
-import React, { useState } from "react";
-import { 
-  StyleSheet, View, Text, Switch, TouchableOpacity, 
-  SafeAreaView, Alert, Linking, ScrollView 
+import React from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  Switch,
+  TouchableOpacity,
+  SafeAreaView,
+  Alert,
+  Linking,
+  ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as Notifications from "expo-notifications";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "../../src/contexts/ThemeContext";
 import { useAuth } from "../../src/contexts/AuthContext";
+import { useSettings } from "../../src/contexts/SettingsContext";
+import { useGoals } from "../../src/contexts/GoalsContext";
+import { useSessions } from "../../src/contexts/SessionsContext";
+import { useNotes } from "../../src/contexts/NotesContext";
+import { storage } from "../../src/services/storage";
 
 export default function Settings() {
   const { theme, toggleTheme } = useTheme();
   const { logout } = useAuth();
+  const { settings, updateSettings, refresh: refreshSettings } = useSettings();
+  const { refresh: refreshGoals } = useGoals();
+  const { refresh: refreshSessions } = useSessions();
+  const { refresh: refreshNotes } = useNotes();
   const router = useRouter();
 
-  const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
-
   const handleNotificationToggle = async () => {
-    if (!isNotificationsEnabled) {
+    if (!settings.notificationsEnabled) {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
 
@@ -33,7 +47,7 @@ export default function Settings() {
           "Notifications are required to remind you about focus sessions.",
           [
             { text: "Cancel", style: "cancel" },
-            { text: "Open Settings", onPress: () => Linking.openSettings() }
+            { text: "Open Settings", onPress: () => Linking.openSettings() },
           ]
         );
         return;
@@ -49,68 +63,65 @@ export default function Settings() {
       });
     }
 
-    setIsNotificationsEnabled(!isNotificationsEnabled);
+    await updateSettings({ notificationsEnabled: !settings.notificationsEnabled });
   };
 
   const handleResetData = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    Alert.alert(
-      "Reset Data",
-      "Are you sure you want to delete all focus data?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          style: "destructive",
-          onPress: () => {
-            Alert.alert("Success", "Data has been reset");
-          }
-        }
-      ]
-    );
+    Alert.alert("Reset Data", "Are you sure you want to delete all focus data?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          await storage.clear();
+          await Promise.all([refreshGoals(), refreshSessions(), refreshNotes(), refreshSettings()]);
+          Alert.alert("Success", "Data has been reset");
+        },
+      },
+    ]);
   };
 
   const handleLogout = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Logout", 
-          style: "destructive",
-          onPress: async () => {
-            await logout();
-            router.replace("/(auth)/welcome");
-          }
-        }
-      ]
-    );
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: async () => {
+          await logout();
+          router.replace("/(auth)/welcome");
+        },
+      },
+    ]);
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
-
           {/* GENERAL */}
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>GENERAL</Text>
 
           <View style={[styles.sectionCard, { backgroundColor: theme.card }]}>
-            <SettingRow 
+            <SettingRow
               icon="⏱️"
               label="Default Focus Duration"
-              rightElement={<Text style={[styles.rightText, { color: theme.textSecondary }]}>25 min  {'>'}</Text>}
+              rightElement={
+                <Text style={[styles.rightText, { color: theme.textSecondary }]}>
+                  {settings.defaultDuration} min  {">"}
+                </Text>
+              }
               theme={theme}
             />
 
-            <SettingRow 
+            <SettingRow
               icon="🔔"
               label="Notifications"
               rightElement={
                 <Switch
-                  value={isNotificationsEnabled}
+                  value={settings.notificationsEnabled}
                   onValueChange={handleNotificationToggle}
                   trackColor={{ false: theme.border, true: theme.primary }}
                   thumbColor="#fff"
@@ -119,7 +130,7 @@ export default function Settings() {
               theme={theme}
             />
 
-            <SettingRow 
+            <SettingRow
               icon="🌙"
               label="Dark Mode"
               last
@@ -143,7 +154,7 @@ export default function Settings() {
 
           <View style={[styles.sectionCard, { backgroundColor: theme.card }]}>
             <TouchableOpacity onPress={handleResetData}>
-              <SettingRow 
+              <SettingRow
                 icon="🗑️"
                 label="Reset Data"
                 labelStyle={{ color: theme.danger || "#ff4444" }}
@@ -158,7 +169,7 @@ export default function Settings() {
 
           <View style={[styles.sectionCard, { backgroundColor: theme.card }]}>
             <TouchableOpacity onPress={handleLogout}>
-              <SettingRow 
+              <SettingRow
                 icon="🚪"
                 label="Logout"
                 labelStyle={{ color: theme.danger || "#ff4444" }}
@@ -180,10 +191,9 @@ export default function Settings() {
 }
 
 const SettingRow = ({ icon, label, rightElement, last, labelStyle, theme }) => (
-  <View style={[
-    styles.row, 
-    !last && { borderBottomColor: theme.border, borderBottomWidth: 1 }
-  ]}>
+  <View
+    style={[styles.row, !last && { borderBottomColor: theme.border, borderBottomWidth: 1 }]}
+  >
     <View style={styles.rowLeft}>
       <Text style={[styles.rowIcon, { color: theme.text }]}>{icon}</Text>
       <Text style={[styles.rowLabel, { color: theme.text }, labelStyle]}>{label}</Text>

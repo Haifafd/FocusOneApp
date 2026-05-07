@@ -7,12 +7,17 @@ import {
   SafeAreaView, 
   StatusBar 
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../src/contexts/ThemeContext";
+import { useSessions } from "../../src/contexts/SessionsContext";
 
 export default function FocusComplete() {
   const { theme } = useTheme();
   const router = useRouter();
+  const { duration } = useLocalSearchParams();
+  const { currentStreak } = useSessions();
+  const minutes = duration || "25";
+  const streakLabel = `${currentStreak} ${currentStreak === 1 ? "Day" : "Days"}`;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -46,12 +51,12 @@ export default function FocusComplete() {
           <View style={styles.statsRow}>
             <View style={[styles.statBox, { backgroundColor: theme.surface }]}>
               <Text style={[styles.statLabel, { color: theme.textSecondary }]}>DURATION</Text>
-              <Text style={[styles.statValue, { color: theme.primary }]}>25:00</Text>
+              <Text style={[styles.statValue, { color: theme.primary }]}>{minutes}:00</Text>
             </View>
 
             <View style={[styles.statBox, { backgroundColor: theme.surface }]}>
               <Text style={[styles.statLabel, { color: theme.textSecondary }]}>STREAKS</Text>
-              <Text style={[styles.statValue, { color: theme.danger }]}>4 Days</Text>
+              <Text style={[styles.statValue, { color: theme.danger }]}>{streakLabel}</Text>
             </View>
           </View>
 

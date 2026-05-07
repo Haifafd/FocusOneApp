@@ -14,7 +14,7 @@ import { useTheme } from "../../src/contexts/ThemeContext";
 import { useAuth } from "../../src/contexts/AuthContext";
 import Input from "../../src/components/ui/Input";
 import Button from "../../src/components/ui/Button";
-import { typography, spacing } from "../../src/theme/typography";
+import { typography, spacing } from "../../src/theme";
 
 export default function RegisterScreen() {
   const { theme } = useTheme();
